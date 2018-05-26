@@ -1,6 +1,6 @@
 #-----------------------------------------
 #Archel Aguilar (980817867)
-# DAM - Assignment C
+# DAM - Assignment 3
 #
 # Credit Card Default Model
 # 
@@ -37,34 +37,104 @@ rm(list=ls())
 install.packages("ISLR")
 library(ISLR)
 
-setwd("C:/Users/arche/Documents/UTS/R-References/R-references-Git/DAM-Assignment-2B")
+setwd("C:/Users/arche/Documents/UTS/R-References/R-references-Git/DAMAssignmentC")
 #setwd("C:/Personal/UTS/R-References/R-references-Git/DAMAssignment2B")
 
 getwd()
 
-cpur = read.csv("repurchase_training.csv")
-str(cpur)
+otrain = read.csv("AT3_credit_train_STUDENT.csv")
+str(otrain)
 
-cpur$Target                     = as.factor(cpur$Target)
-cpur$age_of_vehicle_years       = as.factor(cpur$age_of_vehicle_years)
-cpur$sched_serv_warr            = as.factor(cpur$sched_serv_warr )         
-cpur$non_sched_serv_warr        = as.factor(cpur$non_sched_serv_warr)
-cpur$sched_serv_paid            = as.factor(cpur$sched_serv_paid)
-cpur$non_sched_serv_paid        = as.factor(cpur$non_sched_serv_paid)
-cpur$total_paid_services        = as.factor(cpur$total_paid_services)
-cpur$total_services             = as.factor(cpur$total_services)
-cpur$mth_since_last_serv        = as.factor(cpur$mth_since_last_serv)
-cpur$annualised_mileage         = as.factor(cpur$annualised_mileage)
-cpur$num_dealers_visited        = as.factor(cpur$num_dealers_visited)
-cpur$num_serv_dealer_purchased  = as.factor(cpur$num_serv_dealer_purchased)
+otrain$EDUCATION = as.factor(otrain$EDUCATION)
+otrain$MARRIAGE = as.factor(otrain$MARRIAGE)
+otrain$SEX = as.factor(otrain$SEX)
 
-summary(cpur)
+#---------------------------------------------
+# Analyse data
+#---------------------------------------------
 
-str(cpur)
+summary(otrain)
 
-contrasts(cpur$age_band)
-contrasts(cpur$gender)
-contrasts(cpur$car_segment)
+str(otrain)
+
+contrasts(otrain$SEX)
+contrasts(otrain$EDUCATION)
+contrasts(otrain$MARRIAGE)
+
+nrow(otrain)     #23,101
+
+options(scipen=20)
+#boxplot(otrain$LIMIT_BAL)
+
+install.packages("ggplot2")
+library(ggplot2)
+library(scales)
+library(reshape2)
+
+
+ggplot(data.frame(otrain$LIMIT_BAL), aes(x="Balance Limit", y=otrain$LIMIT_BAL)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + ylab("$")
+ggplot(data.frame(otrain$AGE), aes(x="Age", y=otrain$AGE)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(otrain$AGE), aes(x=otrain$AGE)) + geom_bar() + xlab("Age")
+#some outliers in age - over 120 years of age
+ggplot(data.frame(otrain$SEX), aes(x=otrain$SEX)) + geom_bar() + xlab("Sex")
+#one record of cat, dog, dolphin - need to change to NA
+
+otrain$SEX = as.character(otrain$SEX)
+otrain$SEX[otrain$SEX=="cat"] = "Other"
+otrain$SEX[otrain$SEX=="dog"] = "Other"
+otrain$SEX[otrain$SEX=="dolphin"] = "Other"
+#write.csv(otrain, "test.csv")
+otrain$SEX = as.factor(otrain$SEX)
+#otrain = droplevels(otrain)
+
+ggplot(data.frame(otrain$EDUCATION), aes(x=otrain$EDUCATION)) + geom_bar() + xlab("Education")
+ggplot(data.frame(otrain$MARRIAGE), aes(x=otrain$MARRIAGE)) + geom_bar() + xlab("Marriage")
+ggplot(data.frame(otrain$PAY_PC1), aes(x="Pay PC1", y=otrain$PAY_PC1)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(otrain$PAY_PC2), aes(x="Pay PC2", y=otrain$PAY_PC2)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(otrain$PAY_PC3), aes(x="Pay PC3", y=otrain$PAY_PC3)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(otrain$AMT_PC1), aes(x="Amt PC1", y=otrain$AMT_PC1)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(otrain$AMT_PC2), aes(x="Amt PC2", y=otrain$AMT_PC2)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(otrain$AMT_PC3), aes(x="Amt PC3", y=otrain$AMT_PC3)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(otrain$AMT_PC4), aes(x="Amt PC4", y=otrain$AMT_PC4)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(otrain$AMT_PC5), aes(x="Amt PC5", y=otrain$AMT_PC5)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(otrain$AMT_PC6), aes(x="Amt PC6", y=otrain$AMT_PC6)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(otrain$AMT_PC7), aes(x="Amt PC7", y=otrain$AMT_PC7)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(otrain$default), aes(x=otrain$default)) + geom_bar() + xlab("Default")
+
+#number of defaults 
+nrow(otrain[otrain$default=="Y",]) - #5583
+nrow(otrain[otrain$default=="Y",]) / nrow(otrain) #0.24 proportion of defaults
+
+
+# otest = read.csv("AT3_credit_test_STUDENT.csv")
+# str(otest)
+# 
+# otest$EDUCATION = as.factor(otest$EDUCATION)
+# otest$MARRIAGE = as.factor(otest$MARRIAGE)
+# otest$SEX = as.factor(otest$SEX)
+# 
+# nrow(otest)     #6899
+# ggplot(data.frame(otest$LIMIT_BAL), aes(x="Balance Limit", y=otest$LIMIT_BAL)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + ylab("$")
+# ggplot(data.frame(otest$AGE), aes(x="Age", y=otest$AGE)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# ggplot(data.frame(otest$AGE), aes(x=otest$AGE)) + geom_bar() + xlab("Age")
+# #no ages above 100
+# ggplot(data.frame(otest$SEX), aes(x=otest$SEX)) + geom_bar() + xlab("Sex")
+# #no dogs, dolphins
+# ggplot(data.frame(otest$EDUCATION), aes(x=otest$EDUCATION)) + geom_bar() + xlab("Education")
+# #5 and 6 are both unknown need to combine.
+# ggplot(data.frame(otest$MARRIAGE), aes(x=otest$MARRIAGE)) + geom_bar() + xlab("Marriage")
+# ggplot(data.frame(otest$PAY_PC1), aes(x="Pay PC1", y=otest$PAY_PC1)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# ggplot(data.frame(otest$PAY_PC2), aes(x="Pay PC2", y=otest$PAY_PC2)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# ggplot(data.frame(otest$PAY_PC3), aes(x="Pay PC3", y=otest$PAY_PC3)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# ggplot(data.frame(otest$AMT_PC1), aes(x="Amt PC1", y=otest$AMT_PC1)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# ggplot(data.frame(otest$AMT_PC2), aes(x="Amt PC2", y=otest$AMT_PC2)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# ggplot(data.frame(otest$AMT_PC3), aes(x="Amt PC3", y=otest$AMT_PC3)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# ggplot(data.frame(otest$AMT_PC4), aes(x="Amt PC4", y=otest$AMT_PC4)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# ggplot(data.frame(otest$AMT_PC5), aes(x="Amt PC5", y=otest$AMT_PC5)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# ggplot(data.frame(otest$AMT_PC6), aes(x="Amt PC6", y=otest$AMT_PC6)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# ggplot(data.frame(otest$AMT_PC7), aes(x="Amt PC7", y=otest$AMT_PC7)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# #no defaults
+
 
 
 #---------------------------------------------
@@ -77,56 +147,30 @@ library(caret)
 set.seed(42)
 
 #splits sample group maintaining the ratio of the target
-train = createDataPartition(y = cpur$Target, p = 0.7, list = F)
+train = createDataPartition(y = otrain$default, p = 0.7, list = F)
 
 
 # partition purchase data into two sets 
-training = cpur[train, ]
+training = otrain[train, ]
 resetTraining = training
-testing = cpur[-train, ]
+testing = otrain[-train, ]
 resetTesting = testing
 
 str(training)
 str(testing)
 
-#---------------------------------------------
-# Analyse data
-#---------------------------------------------
+nrow(otrain)     #23,101
+nrow(training)  #16,172
+nrow(testing)   #6,929
 
-nrow(cpur)     #131,337
-nrow(training)  #91,937
-nrow(testing)   #39,400
+nrow(otrain[otrain$default=="Y",]) #5583 - number of defaults
+nrow(otrain[otrain$default=="N",]) #17518 - number of non defaults
+#proportion of defaults in data = 0.2416778
 
-nrow(cpur[cpur$Target=="1",]) #3521 - number of targets
-nrow(cpur[cpur$Target=="0",]) #127816 - number of non targets
-#proportion of targets in data = 0.0268
-
-nrow(training[training$Target=="1",]) #2465 - targets in trainng
-nrow(training[training$Target=="0",]) #89472 - non targets in training
-#proportion of targets in data = 0.0268
-
-install.packages("ggplot2")
-library(ggplot2)
-library(scales)
-
-#frequency charts
-ggplot(data.frame(cpur$Target), aes(x=cpur$Target)) + geom_bar() + xlab("Customer Repurchased a Vechicle (1=Yes, 0=No)") + scale_y_continuous(labels = comma)
-ggplot(data.frame(cpur$age_band), aes(x=cpur$age_band)) + geom_bar() + xlab("Age Band")
-ggplot(data.frame(cpur$gender), aes(x=cpur$gender)) + geom_bar() + xlab("Gender")
-ggplot(data.frame(cpur$car_model), aes(x=cpur$car_model)) + geom_bar() + xlab("Car Model")
-ggplot(data.frame(cpur$car_segment), aes(x=cpur$car_segment)) + geom_bar() + xlab("Car Type")
-ggplot(data.frame(cpur$age_of_vehicle_years), aes(x=cpur$age_of_vehicle_years)) + geom_bar() + xlab("Vehicle Age (Deciles)")
-ggplot(data.frame(cpur$sched_serv_warr), aes(x=cpur$sched_serv_warr)) + geom_bar() + xlab("# Scheduled services (Deciles)")
-ggplot(data.frame(cpur$non_sched_serv_warr), aes(x=cpur$non_sched_serv_warr)) + geom_bar() + xlab("# Non-Scheduled services (Deciles)")
-ggplot(data.frame(cpur$sched_serv_paid), aes(x=cpur$sched_serv_paid)) + geom_bar() + xlab("Amount paid for scheduled services (Deciles)")
-ggplot(data.frame(cpur$non_sched_serv_paid), aes(x=cpur$non_sched_serv_paid)) + geom_bar() + xlab("Amount paid for non scheduled services (Deciles)")
-ggplot(data.frame(cpur$total_paid_services), aes(x=cpur$total_paid_services)) + geom_bar() + xlab("Amount paid for all services (Deciles)")
-ggplot(data.frame(cpur$total_services), aes(x=cpur$total_services)) + geom_bar() + xlab("Total # services (Deciles)")
-ggplot(data.frame(cpur$mth_since_last_serv), aes(x=cpur$mth_since_last_serv)) + geom_bar() + xlab("Months since last service (Deciles)")
-ggplot(data.frame(cpur$annualised_mileage), aes(x=cpur$annualised_mileage)) + geom_bar() + xlab("Months since last service (Deciles)")
-ggplot(data.frame(cpur$num_dealers_visited), aes(x=cpur$num_dealers_visited)) + geom_bar() + xlab("Number of dealers visited for servicing (Deciles)")
-ggplot(data.frame(cpur$num_serv_dealer_purchased), aes(x=cpur$num_serv_dealer_purchased)) + geom_bar() + xlab("Number of services at purchased dealer (Deciles)")
-
+nrow(training[training$default=="Y",]) #3909 - number of defaults in training
+nrow(training[training$default=="N",]) #12263 - number of non defaults in training
+#proportion of defaults in data = 0.2417141
+#equal number of defaults
 
 
 #---------------------------
@@ -137,17 +181,13 @@ ggplot(data.frame(cpur$num_serv_dealer_purchased), aes(x=cpur$num_serv_dealer_pu
 #Recall:Sensitivtiy
 
 #include all except for identifier (ID)
-glmodel = "Target ~. -ID" #all variables (AIC: 9078, F1: 0.660561, sensitivity/recall: 0.54640, precision/pos pred value: 0.83502)
+glmodel = "default ~. -ID" #all variables (AIC: 15805, F1: 0.660561, sensitivity/recall: 0.54640, precision/pos pred value: 0.83502)
 
-#glmodel = "Target ~ -ID + gender + car_model + age_of_vehicle_years + sched_serv_warr + non_sched_serv_warr + sched_serv_paid + non_sched_serv_paid + total_services + mth_since_last_serv + annualised_mileage + num_dealers_visited + num_serv_dealer_purchased"
-#(AIC: 9118, F1: 0.6613181, sensitivity: 0.54640)
-#glmodel = "Target ~ gender - ID" (AIC: 22569, F1: NA, sensitivity: 0.0000)
-
-cpur.glm = glm(formula = glmodel,
+def.glm = glm(formula = glmodel,
              data = training,
              family = "binomial")
-summary(cpur.glm)
-#AIC: 9078
+summary(def.glm)
+#AIC: 15803
 
 
 ###########################
@@ -155,12 +195,12 @@ summary(cpur.glm)
 ###########################
 
 # add the probabilities to the testing data
-testing$probability = predict(cpur.glm, newdata = testing, type = "response")
+testing$probability = predict(def.glm, newdata = testing, type = "response")
 
 # assume that the optimum probability threshold is 0.5
-# Create the class prediction - our target is 1
-testing$prediction = "0"
-testing[testing$probability >= 0.5, "prediction"] = "1"
+# Create the class prediction - our target is Y
+testing$prediction = "N"
+testing[testing$probability >= 0.5, "prediction"] = "Y"
 
 
 ###########################
@@ -168,35 +208,35 @@ testing[testing$probability >= 0.5, "prediction"] = "1"
 ###########################
 
 #set Target=1 as the focus for confusion matrix
-cm = confusionMatrix(data = as.factor(testing$prediction), testing$Target, positive="1")
+cm = confusionMatrix(data = as.factor(testing$prediction), testing$default, positive="Y")
 #get F1 score
-cm$byClass["F1"] #0.6553341
+cm$byClass["F1"] #0.3420578 
 
 #summary
 cm
-#               Reference
-# Prediction      0     1
-#           0 38253   497
-#           1    91   559
+#                   Reference
+# Prediction          N    Y
+# N                 5092 1295
+# Y                  163  379
 # 
-# Accuracy : 0.9851          
-# 95% CI : (0.9838, 0.9863)
-# No Information Rate : 0.9732          
-# P-Value [Acc > NIR] : < 2.2e-16       
+# Accuracy : 0.7896               
+# 95% CI : (0.7798, 0.7991)     
+# No Information Rate : 0.7584               
+# P-Value [Acc > NIR] : 0.0000000004118      
 # 
-# Kappa : 0.6481          
-# Mcnemar's Test P-Value : < 2.2e-16       
+# Kappa : 0.2539               
+# Mcnemar's Test P-Value : < 0.00000000000000022
 # 
-# Sensitivity : 0.52936         
-# Specificity : 0.99763         
-# Pos Pred Value : 0.86000         
-# Neg Pred Value : 0.98717         
-# Prevalence : 0.02680         
-# Detection Rate : 0.01419         
-# Detection Prevalence : 0.01650         
-# Balanced Accuracy : 0.76349         
+# Sensitivity : 0.22640              
+# Specificity : 0.96898              
+# Pos Pred Value : 0.69926              
+# Neg Pred Value : 0.79724              
+# Prevalence : 0.24159              
+# Detection Rate : 0.05470              
+# Detection Prevalence : 0.07822              
+# Balanced Accuracy : 0.59769              
 # 
-# 'Positive' Class : 1          
+# 'Positive' Class : Y         
 
 #-------------------------------------------
 # Lasso & Ridge check
@@ -206,19 +246,23 @@ install.packages("glmnet")
 library(glmnet)
 
 ###########################
-# Lasso Regression (F1 - 0.6524002, sensitivity/recall: 0.53409, precision/pos pred value: 0.83804)
+# Lasso Regression (F1 - 0.3316629, sensitivity/recall: 0.21744, precision/pos pred value: 0.69866)
 ###########################
 
 #reset variables
 training = resetTraining
 #remove ID and Target from model
-x = model.matrix(~ ., training[, c(-1,-2)])
-y = training$Target
+
+excludeID = which(colnames(training)=="ID")
+excludeTarget = which(colnames(training)=="default")
+
+x = model.matrix(~ ., training[, c(-excludeID, -excludeTarget)])
+y = training$default
 
 testing = resetTesting
 #remove ID and Target from model
-z = model.matrix(~ ., testing[, c(-1,-2)])
-a = testing$Target
+z = model.matrix(~ ., testing[, c(-excludeID, -excludeTarget)])
+a = testing$default
 
 set.seed(42)
 
@@ -240,48 +284,52 @@ cv.lasso_coef
 
 prediction_lasso = predict(cv.fit_lasso$glmnet.fit, newx =z, type = "class", s = cv.fit_lasso$lambda.min)
 
-lasso_confusion = confusionMatrix(data = as.factor(prediction_lasso), a, positive="1")
+lasso_confusion = confusionMatrix(data = as.factor(prediction_lasso), a, positive="Y")
 lasso_confusion
-#                 Reference
-# Prediction      0     1
-#           0 38235   492
-#           1   109   564
+#               Reference
+# Prediction    N    Y
+#           N 5098 1310
+#           Y  157  364
 # 
-# Accuracy : 0.9847          
-# 95% CI : (0.9835, 0.9859)
-# No Information Rate : 0.9732          
-# P-Value [Acc > NIR] : < 2.2e-16       
+# Accuracy : 0.7883               
+# 95% CI : (0.7785, 0.7978)     
+# No Information Rate : 0.7584               
+# P-Value [Acc > NIR] : 0.000000002055       
 # 
-# Kappa : 0.645           
-# Mcnemar's Test P-Value : < 2.2e-16       
+# Kappa : 0.2451               
+# Mcnemar's Test P-Value : < 0.00000000000000022
 # 
-# Sensitivity : 0.53409         
-# Specificity : 0.99716         
-# Pos Pred Value : 0.83804         
-# Neg Pred Value : 0.98730         
-# Prevalence : 0.02680         
-# Detection Rate : 0.01431         
-# Detection Prevalence : 0.01708         
-# Balanced Accuracy : 0.76562         
+# Sensitivity : 0.21744              
+# Specificity : 0.97012              
+# Pos Pred Value : 0.69866              
+# Neg Pred Value : 0.79557              
+# Prevalence : 0.24159              
+# Detection Rate : 0.05253              
+# Detection Prevalence : 0.07519              
+# Balanced Accuracy : 0.59378              
 # 
-# 'Positive' Class : 1          
+# 'Positive' Class : Y         
 
-lasso_confusion$byClass["F1"] #0.6524002
+lasso_confusion$byClass["F1"] #0.3316629
 
 ###########################
-# Ridge Regression (F1: 0.4292893, sensitivity/recall: 0.283144, precision/pos pred value: 0.887240)
+# Ridge Regression (F1: 0.3143782, sensitivity/recall: 0.20311, precision/pos pred value: 0.69530)
 ###########################
 
 #reset variables
 training = resetTraining
 #remove ID and Target from model
-x = model.matrix(~ ., training[, c(-1,-2)])
-y = training$Target
+
+excludeID = which(colnames(training)=="ID")
+excludeTarget = which(colnames(training)=="default")
+
+x = model.matrix(~ ., training[, c(-excludeID, -excludeTarget)])
+y = training$default
 
 testing = resetTesting
 #remove ID and Target from model
-z = model.matrix(~ ., testing[, c(-1,-2)])
-a = testing$Target
+z = model.matrix(~ ., testing[, c(-excludeID, -excludeTarget)])
+a = testing$default
 
 set.seed(42)
 
@@ -300,33 +348,33 @@ prediction_ridge = predict(cv.fit_ridge$glmnet.fit, newx=z, type="class", s = cv
 
 
 #set Target=1 as the focus for confusion matrix
-ridge_confusion = confusionMatrix(data = as.factor(prediction_ridge), testing$Target, positive="1")
+ridge_confusion = confusionMatrix(data = as.factor(prediction_ridge), testing$default, positive="Y")
 ridge_confusion
 #               Reference
-# Prediction        0     1
-#             0 38306   757
-#             1    38   299
+# Prediction    N    Y
+#           N 5106 1334
+#           Y  149  340
 # 
-# Accuracy : 0.9798          
-# 95% CI : (0.9784, 0.9812)
-# No Information Rate : 0.9732          
-# P-Value [Acc > NIR] : < 2.2e-16       
+# Accuracy : 0.786                
+# 95% CI : (0.7761, 0.7956)     
+# No Information Rate : 0.7584               
+# P-Value [Acc > NIR] : 0.00000003024        
 # 
-# Kappa : 0.4218          
-# Mcnemar's Test P-Value : < 2.2e-16       
+# Kappa : 0.2303               
+# Mcnemar's Test P-Value : < 0.00000000000000022
 # 
-# Sensitivity : 0.283144        
-# Specificity : 0.999009        
-# Pos Pred Value : 0.887240        
-# Neg Pred Value : 0.980621        
-# Prevalence : 0.026802        
-# Detection Rate : 0.007589        
-# Detection Prevalence : 0.008553        
-# Balanced Accuracy : 0.641076        
+# Sensitivity : 0.20311              
+# Specificity : 0.97165              
+# Pos Pred Value : 0.69530              
+# Neg Pred Value : 0.79286              
+# Prevalence : 0.24159              
+# Detection Rate : 0.04907              
+# Detection Prevalence : 0.07057              
+# Balanced Accuracy : 0.58738              
 # 
-# 'Positive' Class : 1  
+# 'Positive' Class : Y 
 
-ridge_confusion$byClass["F1"] #0.4292893 
+ridge_confusion$byClass["F1"] #0.3143782 
 
 #-------------------------------------------
 # Tree classification
@@ -345,20 +393,24 @@ set.seed(42)
 #reset variables
 training = resetTraining
 #remove ID and Target from model
-x = model.matrix(~ ., training[, c(-1,-2)])
-y = training$Target
+
+excludeID = which(colnames(training)=="ID")
+excludeTarget = which(colnames(training)=="default")
+
+x = model.matrix(~ ., training[, c(-excludeID, -excludeTarget)])
+y = training$default
 
 testing = resetTesting
 #remove ID and Target from model
-z = model.matrix(~ ., testing[, c(-1,-2)])
-a = testing$Target
+z = model.matrix(~ ., testing[, c(-excludeID, -excludeTarget)])
+a = testing$default
 
 ###########################
-# Decision Tree (F1: 0.5927273, sensitivity/recall: 0.46307, precision/pos pred value: 0.82323)
+# Decision Tree (F1: 0.5262017, sensitivity/recall: 0.4349, precision/pos pred value: 0.6661)
 ###########################
 
 #build model
-rpart_model = rpart(Target ~.-ID,data = training, method="class") #use method ="anova" for regression problems
+rpart_model = rpart(training$default ~.-ID,data = training, method="class") #use method ="anova" for regression problems
 
 #plot tree
 prp(rpart_model)
@@ -367,34 +419,34 @@ prp(rpart_model)
 #prediction
 rpart_predict = predict(rpart_model,testing,type="class")
 
-rpart_confusion = confusionMatrix(data = as.factor(rpart_predict), testing$Target, positive="1")
+rpart_confusion = confusionMatrix(data = as.factor(rpart_predict), testing$default, positive="Y")
 rpart_confusion
 
-rpart_confusion$byClass["F1"] #0.5927273
+rpart_confusion$byClass["F1"] #0.5262017
 
-#                 Reference
-# Prediction      0     1
-#           0 38239   567
-#           1   105   489
+#               Reference
+# Prediction    N    Y
+#           N 4890  946
+#           Y  365  728
 # 
-# Accuracy : 0.9829          
-# 95% CI : (0.9816, 0.9842)
-# No Information Rate : 0.9732          
-# P-Value [Acc > NIR] : < 2.2e-16       
+# Accuracy : 0.8108               
+# 95% CI : (0.8014, 0.82)       
+# No Information Rate : 0.7584               
+# P-Value [Acc > NIR] : < 0.00000000000000022
 # 
-# Kappa : 0.5847          
-# Mcnemar's Test P-Value : < 2.2e-16       
+# Kappa : 0.4144               
+# Mcnemar's Test P-Value : < 0.00000000000000022
 # 
-# Sensitivity : 0.46307         
-# Specificity : 0.99726         
-# Pos Pred Value : 0.82323         
-# Neg Pred Value : 0.98539         
-# Prevalence : 0.02680         
-# Detection Rate : 0.01241         
-# Detection Prevalence : 0.01508         
-# Balanced Accuracy : 0.73016         
+# Sensitivity : 0.4349               
+# Specificity : 0.9305               
+# Pos Pred Value : 0.6661               
+# Neg Pred Value : 0.8379               
+# Prevalence : 0.2416               
+# Detection Rate : 0.1051               
+# Detection Prevalence : 0.1577               
+# Balanced Accuracy : 0.6827               
 # 
-# 'Positive' Class : 1         
+# 'Positive' Class : Y         
 
 
 ###########################
@@ -407,17 +459,21 @@ library(randomForest)
 #reset variables
 training = resetTraining
 #remove ID and Target from model
-x = model.matrix(~ ., training[, c(-1,-2)])
-y = training$Target
+
+excludeID = which(colnames(training)=="ID")
+excludeTarget = which(colnames(training)=="default")
+
+x = model.matrix(~ ., training[, c(-excludeID, -excludeTarget)])
+y = training$default
 
 testing = resetTesting
 #remove ID and Target from model
-z = model.matrix(~ ., testing[, c(-1,-2)])
-a = testing$Target
+z = model.matrix(~ ., testing[, c(-excludeID, -excludeTarget)])
+a = testing$default
 
 #run cross validation - takes a long time
-#tc = trainControl(method="cv", number=5)
-#train(Target ~. -ID, data=training, method="rf", trControl=tc)
+tc = trainControl(method="cv", number=5)
+train(training$default ~. -ID, data=training, method="rf", trControl=tc)
 
 
 
@@ -428,7 +484,7 @@ a = testing$Target
 #    -if categorical=floor(sqrt(no of independent variables))
 # lower mtry means 1) less correlation between trees (good thing), 2) decreases strength of each tree. cannot predict accurately because of the limited variables (bad thing)
 
-rf_model = randomForest(Target ~. -ID, data = training, importance=TRUE, xtest=testing[,c(-1,-2)], keep.forest=TRUE, ntree=1000)
+rf_model = randomForest(training$default ~. -ID, data = training, importance=TRUE, xtest=testing[,c(excludeID, excludeTarget)], keep.forest=TRUE, ntree=1000)
 rf_model
 #OOB estimate of  error rate: 0.79%
 #Confusion matrix:
@@ -448,7 +504,7 @@ test_prob_rf = predict(rf_model, testing, type="prob")
 
 #predictions for test set
 test_predictions_rf = predict(rf_model, testing, type="class")
-rf_confusion = confusionMatrix(data = as.factor(test_predictions_rf), testing$Target, positive="1")
+rf_confusion = confusionMatrix(data = as.factor(test_predictions_rf), testing$default, positive="Y")
 
 #predictions for test set
 #test_predictions_rf = data.frame(testing, rf_model$test$predicted)
