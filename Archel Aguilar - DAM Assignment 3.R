@@ -472,8 +472,8 @@ z = model.matrix(~ ., testing[, c(-excludeID, -excludeTarget)])
 a = testing$default
 
 #run cross validation - takes a long time
-tc = trainControl(method="cv", number=5)
-train(training$default ~. -ID, data=training, method="rf", trControl=tc)
+tc = trainControl(method="cv", number=5, classProbs=TRUE)
+rf.fit = train(default ~. -ID, data=training, method="rf", trControl=tc)
 
 
 
@@ -484,13 +484,14 @@ train(training$default ~. -ID, data=training, method="rf", trControl=tc)
 #    -if categorical=floor(sqrt(no of independent variables))
 # lower mtry means 1) less correlation between trees (good thing), 2) decreases strength of each tree. cannot predict accurately because of the limited variables (bad thing)
 
-rf_model = randomForest(training$default ~. -ID, data = training, importance=TRUE, xtest=testing[,c(excludeID, excludeTarget)], keep.forest=TRUE, ntree=1000)
+rf_model = randomForest(training$default ~. -ID, data = training, importance=TRUE, xtest=testing[,c(-excludeID, -excludeTarget)], keep.forest=TRUE, ntree=1000)
 rf_model
-#OOB estimate of  error rate: 0.79%
-#Confusion matrix:
-#      0    1  class.error
-#0 89394   78 0.0008717811
-#1   644 1821 0.2612576065
+# No. of variables tried at each split: 3 
+# OOB estimate of  error rate: 18.48%
+# Confusion matrix:
+#   N    Y class.error
+# N 11538  725  0.05912093
+# Y  2263 1646  0.57892044
 
 
 #model summary
@@ -510,33 +511,31 @@ rf_confusion = confusionMatrix(data = as.factor(test_predictions_rf), testing$de
 #test_predictions_rf = data.frame(testing, rf_model$test$predicted)
 #rf_confusion = confusionMatrix(data = as.factor(test_predictions_rf$rf_model.test.predicted), testing$Target, positive="1")
 
-rf_confusion$byClass["F1"] #0.8247978
+rf_confusion$byClass["F1"] #0.5347794
 rf_confusion
-# Confusion Matrix and Statistics
-# 
 #               Reference
-# Prediction        0     1
-#             0 38310   291
-#             1    34   765
+# Prediction    N    Y
+#           N 4970  959
+#           Y  285  715
 # 
-# Accuracy : 0.9918          
-# 95% CI : (0.9908, 0.9926)
-# No Information Rate : 0.9732          
-# P-Value [Acc > NIR] : < 2.2e-16       
+# Accuracy : 0.8205               
+# 95% CI : (0.8112, 0.8294)     
+# No Information Rate : 0.7584               
+# P-Value [Acc > NIR] : < 0.00000000000000022
 # 
-# Kappa : 0.8207          
-# Mcnemar's Test P-Value : < 2.2e-16       
+# Kappa : 0.4322               
+# Mcnemar's Test P-Value : < 0.00000000000000022
 # 
-# Sensitivity : 0.72443         
-# Specificity : 0.99911         
-# Pos Pred Value : 0.95745         
-# Neg Pred Value : 0.99246         
-# Prevalence : 0.02680         
-# Detection Rate : 0.01942         
-# Detection Prevalence : 0.02028         
-# Balanced Accuracy : 0.86177         
+# Sensitivity : 0.4271               
+# Specificity : 0.9458               
+# Pos Pred Value : 0.7150               
+# Neg Pred Value : 0.8383               
+# Prevalence : 0.2416               
+# Detection Rate : 0.1032               
+# Detection Prevalence : 0.1443               
+# Balanced Accuracy : 0.6864               
 # 
-# 'Positive' Class : 1  
+# 'Positive' Class : Y  
 
 #quantitative measure of variable importance
 importance(rf_model)
@@ -547,82 +546,82 @@ varImpPlot(rf_model)
 #high value of mean decrease accuracy or gini scores higher importance of the variable in the model
 
 #top predictors
-# 1. mth_since_last_serv
-# 2. num_serv_dealer_purchased
-# 3. annualised_mileage
-# 4. age_of_vechile_years
-# 5. total_services
+# 1. PAY_PC1
+# 2. AGE
+# 3. LIMIT_BAL
+# 4. AMT_PC2
+# 5. AMT_PC1
 
 #----------------------------------------------
 #   Predict on validation file
 #----------------------------------------------
 
-cpurvalid = read.csv("repurchase_validation.csv")
-str(cpurvalid)
-
-cpurvalid$Target                     = as.factor(0)
-cpurvalid$ID                         = as.integer(0)
-cpurvalid$age_of_vehicle_years       = as.factor(cpurvalid$age_of_vehicle_years)
-cpurvalid$sched_serv_warr            = as.factor(cpurvalid$sched_serv_warr )         
-cpurvalid$non_sched_serv_warr        = as.factor(cpurvalid$non_sched_serv_warr)
-cpurvalid$sched_serv_paid            = as.factor(cpurvalid$sched_serv_paid)
-cpurvalid$non_sched_serv_paid        = as.factor(cpurvalid$non_sched_serv_paid)
-cpurvalid$total_paid_services        = as.factor(cpurvalid$total_paid_services)
-cpurvalid$total_services             = as.factor(cpurvalid$total_services)
-cpurvalid$mth_since_last_serv        = as.factor(cpurvalid$mth_since_last_serv)
-cpurvalid$annualised_mileage         = as.factor(cpurvalid$annualised_mileage)
-cpurvalid$num_dealers_visited        = as.factor(cpurvalid$num_dealers_visited)
-cpurvalid$num_serv_dealer_purchased  = as.factor(cpurvalid$num_serv_dealer_purchased)
-
-summary(cpurvalid)
-
-#------------------
-# check data
-#------------------
-#frequency charts
-ggplot(data.frame(cpurvalid$age_band), aes(x=cpurvalid$age_band)) + geom_bar() + xlab("Age Band")
-ggplot(data.frame(cpurvalid$gender), aes(x=cpurvalid$gender)) + geom_bar() + xlab("Gender")
-ggplot(data.frame(cpurvalid$car_model), aes(x=cpurvalid$car_model)) + geom_bar() + xlab("Car Model")
-ggplot(data.frame(cpurvalid$car_segment), aes(x=cpurvalid$car_segment)) + geom_bar() + xlab("Car Type")
-ggplot(data.frame(cpurvalid$age_of_vehicle_years), aes(x=cpurvalid$age_of_vehicle_years)) + geom_bar() + xlab("Vehicle Age (Deciles)")
-ggplot(data.frame(cpurvalid$sched_serv_warr), aes(x=cpurvalid$sched_serv_warr)) + geom_bar() + xlab("# Scheduled services (Deciles)")
-ggplot(data.frame(cpurvalid$non_sched_serv_warr), aes(x=cpurvalid$non_sched_serv_warr)) + geom_bar() + xlab("# Non-Scheduled services (Deciles)")
-ggplot(data.frame(cpurvalid$sched_serv_paid), aes(x=cpurvalid$sched_serv_paid)) + geom_bar() + xlab("Amount paid for scheduled services (Deciles)")
-ggplot(data.frame(cpurvalid$non_sched_serv_paid), aes(x=cpurvalid$non_sched_serv_paid)) + geom_bar() + xlab("Amount paid for non scheduled services (Deciles)")
-ggplot(data.frame(cpurvalid$total_paid_services), aes(x=cpurvalid$total_paid_services)) + geom_bar() + xlab("Amount paid for all services (Deciles)")
-ggplot(data.frame(cpurvalid$total_services), aes(x=cpurvalid$total_services)) + geom_bar() + xlab("Total # services (Deciles)")
-ggplot(data.frame(cpurvalid$mth_since_last_serv), aes(x=cpurvalid$mth_since_last_serv)) + geom_bar() + xlab("Months since last service (Deciles)")
-ggplot(data.frame(cpurvalid$annualised_mileage), aes(x=cpurvalid$annualised_mileage)) + geom_bar() + xlab("Months since last service (Deciles)")
-ggplot(data.frame(cpurvalid$num_dealers_visited), aes(x=cpurvalid$num_dealers_visited)) + geom_bar() + xlab("Number of dealers visited for servicing (Deciles)")
-ggplot(data.frame(cpurvalid$num_serv_dealer_purchased), aes(x=cpurvalid$num_serv_dealer_purchased)) + geom_bar() + xlab("Number of services at purchased dealer (Deciles)")
-
-
-
-str(cpurvalid)
-cpurvalid = cpurvalid[c(17,16,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15)]
-str(cpurvalid)
-
-firstrow = training[1,]
-
-cpurvalid = rbind(training[1,], cpurvalid)
-cpurvalid = cpurvalid[-1,]
-
-
-#probability
-cpurvalid.prob_rf = predict(rf_model, cpurvalid, type="prob")
-cpurvalid.prob_rf = as.data.frame(cpurvalid.prob_rf)
-cpurvalid$prob_0 = as.numeric(cpurvalid.prob_rf[,1])
-cpurvalid$prob_1 = as.numeric(cpurvalid.prob_rf[,2])
-
-#predictions for test set
-cpurvalid.predictions_rf = predict(rf_model, cpurvalid, type="class")
-
-cpurvalid$Target = cpurvalid.predictions_rf
-cpurvalid.predTarget = nrow(cpurvalid[cpurvalid$Target=="1",]) #1235
-#proportion of target predicted
-cpurvalid.predTarget / nrow(cpurvalid) #0.0247 -similar to training proportion
-
-write.csv(cpurvalid, "predicted_repurchase_validation.csv")
+# cpurvalid = read.csv("repurchase_validation.csv")
+# str(cpurvalid)
+# 
+# cpurvalid$Target                     = as.factor(0)
+# cpurvalid$ID                         = as.integer(0)
+# cpurvalid$age_of_vehicle_years       = as.factor(cpurvalid$age_of_vehicle_years)
+# cpurvalid$sched_serv_warr            = as.factor(cpurvalid$sched_serv_warr )         
+# cpurvalid$non_sched_serv_warr        = as.factor(cpurvalid$non_sched_serv_warr)
+# cpurvalid$sched_serv_paid            = as.factor(cpurvalid$sched_serv_paid)
+# cpurvalid$non_sched_serv_paid        = as.factor(cpurvalid$non_sched_serv_paid)
+# cpurvalid$total_paid_services        = as.factor(cpurvalid$total_paid_services)
+# cpurvalid$total_services             = as.factor(cpurvalid$total_services)
+# cpurvalid$mth_since_last_serv        = as.factor(cpurvalid$mth_since_last_serv)
+# cpurvalid$annualised_mileage         = as.factor(cpurvalid$annualised_mileage)
+# cpurvalid$num_dealers_visited        = as.factor(cpurvalid$num_dealers_visited)
+# cpurvalid$num_serv_dealer_purchased  = as.factor(cpurvalid$num_serv_dealer_purchased)
+# 
+# summary(cpurvalid)
+# 
+# #------------------
+# # check data
+# #------------------
+# #frequency charts
+# ggplot(data.frame(cpurvalid$age_band), aes(x=cpurvalid$age_band)) + geom_bar() + xlab("Age Band")
+# ggplot(data.frame(cpurvalid$gender), aes(x=cpurvalid$gender)) + geom_bar() + xlab("Gender")
+# ggplot(data.frame(cpurvalid$car_model), aes(x=cpurvalid$car_model)) + geom_bar() + xlab("Car Model")
+# ggplot(data.frame(cpurvalid$car_segment), aes(x=cpurvalid$car_segment)) + geom_bar() + xlab("Car Type")
+# ggplot(data.frame(cpurvalid$age_of_vehicle_years), aes(x=cpurvalid$age_of_vehicle_years)) + geom_bar() + xlab("Vehicle Age (Deciles)")
+# ggplot(data.frame(cpurvalid$sched_serv_warr), aes(x=cpurvalid$sched_serv_warr)) + geom_bar() + xlab("# Scheduled services (Deciles)")
+# ggplot(data.frame(cpurvalid$non_sched_serv_warr), aes(x=cpurvalid$non_sched_serv_warr)) + geom_bar() + xlab("# Non-Scheduled services (Deciles)")
+# ggplot(data.frame(cpurvalid$sched_serv_paid), aes(x=cpurvalid$sched_serv_paid)) + geom_bar() + xlab("Amount paid for scheduled services (Deciles)")
+# ggplot(data.frame(cpurvalid$non_sched_serv_paid), aes(x=cpurvalid$non_sched_serv_paid)) + geom_bar() + xlab("Amount paid for non scheduled services (Deciles)")
+# ggplot(data.frame(cpurvalid$total_paid_services), aes(x=cpurvalid$total_paid_services)) + geom_bar() + xlab("Amount paid for all services (Deciles)")
+# ggplot(data.frame(cpurvalid$total_services), aes(x=cpurvalid$total_services)) + geom_bar() + xlab("Total # services (Deciles)")
+# ggplot(data.frame(cpurvalid$mth_since_last_serv), aes(x=cpurvalid$mth_since_last_serv)) + geom_bar() + xlab("Months since last service (Deciles)")
+# ggplot(data.frame(cpurvalid$annualised_mileage), aes(x=cpurvalid$annualised_mileage)) + geom_bar() + xlab("Months since last service (Deciles)")
+# ggplot(data.frame(cpurvalid$num_dealers_visited), aes(x=cpurvalid$num_dealers_visited)) + geom_bar() + xlab("Number of dealers visited for servicing (Deciles)")
+# ggplot(data.frame(cpurvalid$num_serv_dealer_purchased), aes(x=cpurvalid$num_serv_dealer_purchased)) + geom_bar() + xlab("Number of services at purchased dealer (Deciles)")
+# 
+# 
+# 
+# str(cpurvalid)
+# cpurvalid = cpurvalid[c(17,16,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15)]
+# str(cpurvalid)
+# 
+# firstrow = training[1,]
+# 
+# cpurvalid = rbind(training[1,], cpurvalid)
+# cpurvalid = cpurvalid[-1,]
+# 
+# 
+# #probability
+# cpurvalid.prob_rf = predict(rf_model, cpurvalid, type="prob")
+# cpurvalid.prob_rf = as.data.frame(cpurvalid.prob_rf)
+# cpurvalid$prob_0 = as.numeric(cpurvalid.prob_rf[,1])
+# cpurvalid$prob_1 = as.numeric(cpurvalid.prob_rf[,2])
+# 
+# #predictions for test set
+# cpurvalid.predictions_rf = predict(rf_model, cpurvalid, type="class")
+# 
+# cpurvalid$Target = cpurvalid.predictions_rf
+# cpurvalid.predTarget = nrow(cpurvalid[cpurvalid$Target=="1",]) #1235
+# #proportion of target predicted
+# cpurvalid.predTarget / nrow(cpurvalid) #0.0247 -similar to training proportion
+# 
+# write.csv(cpurvalid, "predicted_repurchase_validation.csv")
 
 
 #---------------------- END ---------------------------
