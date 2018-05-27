@@ -105,6 +105,7 @@ ggplot(data.frame(otrain$default), aes(x=otrain$default)) + geom_bar() + xlab("D
 nrow(otrain[otrain$default=="Y",]) - #5583
 nrow(otrain[otrain$default=="Y",]) / nrow(otrain) #0.24 proportion of defaults
 
+#pairs(otrain)
 
 # otest = read.csv("AT3_credit_test_STUDENT.csv")
 # str(otest)
