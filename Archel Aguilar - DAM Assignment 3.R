@@ -450,7 +450,7 @@ rpart_confusion$byClass["F1"] #0.5262017
 
 
 ###########################
-# Random Forests (F1: 0.8247978, sensitivity/recall: 0.72443, precision/pos pred value: 0.95745)
+# Random Forests (F1: 0.5614414, sensitivity/recall: 0.4654, precision/pos pred value: 0.7075)
 ###########################
 
 install.packages("randomForest")
@@ -471,9 +471,35 @@ testing = resetTesting
 z = model.matrix(~ ., testing[, c(-excludeID, -excludeTarget)])
 a = testing$default
 
+set.seed(42)
+
+
 #run cross validation - takes a long time
 tc = trainControl(method="cv", number=5, classProbs=TRUE)
+#takes 10mins to run
 rf.fit = train(default ~. -ID, data=training, method="rf", trControl=tc)
+rf.fit
+# Random Forest 
+# 
+# 16172 samples
+# 16 predictor
+# 2 classes: 'N', 'Y' 
+# 
+# No pre-processing
+# Resampling: Cross-Validated (5 fold) 
+# Summary of sample sizes: 12937, 12939, 12938, 12937, 12937 
+# Resampling results across tuning parameters:
+#   
+#   mtry  Accuracy   Kappa    
+# 2     0.7945826  0.2843341
+# 12    0.8182044  0.4438461
+# 23    0.8177719  0.4446908
+# 
+# Accuracy was used to select the optimal model using the largest value.
+# The final value used for the model was mtry = 12.
+
+tuneRF(training[,c(-excludeID, -excludeTarget)], training$default, ntreeTry =1000, stepFactor = 2, improve = 1, trace=T, plot=T)
+
 
 
 
@@ -484,7 +510,7 @@ rf.fit = train(default ~. -ID, data=training, method="rf", trControl=tc)
 #    -if categorical=floor(sqrt(no of independent variables))
 # lower mtry means 1) less correlation between trees (good thing), 2) decreases strength of each tree. cannot predict accurately because of the limited variables (bad thing)
 
-rf_model = randomForest(training$default ~. -ID, data = training, importance=TRUE, xtest=testing[,c(-excludeID, -excludeTarget)], keep.forest=TRUE, ntree=1000)
+rf_model = randomForest(training$default ~. -ID, data = training, mtry=12, importance=TRUE, xtest=testing[,c(-excludeID, -excludeTarget)], keep.forest=TRUE, ntree=1000)
 rf_model
 # No. of variables tried at each split: 3 
 # OOB estimate of  error rate: 18.48%
@@ -492,6 +518,16 @@ rf_model
 #   N    Y class.error
 # N 11538  725  0.05912093
 # Y  2263 1646  0.57892044
+
+#--------------tried with mtry=12
+# No. of variables tried at each split: 12
+# 
+# OOB estimate of  error rate: 18.19% <--misclassification rate
+# Confusion matrix:
+#   N    Y class.error
+# N 11386  877  0.07151594
+# Y  2064 1845  0.52801228
+
 
 
 #model summary
@@ -511,31 +547,31 @@ rf_confusion = confusionMatrix(data = as.factor(test_predictions_rf), testing$de
 #test_predictions_rf = data.frame(testing, rf_model$test$predicted)
 #rf_confusion = confusionMatrix(data = as.factor(test_predictions_rf$rf_model.test.predicted), testing$Target, positive="1")
 
-rf_confusion$byClass["F1"] #0.5347794
+rf_confusion$byClass["F1"] #0.5614414
 rf_confusion
 #               Reference
 # Prediction    N    Y
-#           N 4970  959
-#           Y  285  715
+#           N 4933  895
+#           Y  322  779
 # 
-# Accuracy : 0.8205               
-# 95% CI : (0.8112, 0.8294)     
+# Accuracy : 0.8244               
+# 95% CI : (0.8152, 0.8333)     
 # No Information Rate : 0.7584               
 # P-Value [Acc > NIR] : < 0.00000000000000022
 # 
-# Kappa : 0.4322               
+# Kappa : 0.4574               
 # Mcnemar's Test P-Value : < 0.00000000000000022
 # 
-# Sensitivity : 0.4271               
-# Specificity : 0.9458               
-# Pos Pred Value : 0.7150               
-# Neg Pred Value : 0.8383               
+# Sensitivity : 0.4654               
+# Specificity : 0.9387               
+# Pos Pred Value : 0.7075               
+# Neg Pred Value : 0.8464               
 # Prevalence : 0.2416               
-# Detection Rate : 0.1032               
-# Detection Prevalence : 0.1443               
-# Balanced Accuracy : 0.6864               
+# Detection Rate : 0.1124               
+# Detection Prevalence : 0.1589               
+# Balanced Accuracy : 0.7020               
 # 
-# 'Positive' Class : Y  
+# 'Positive' Class : Y     
 
 #quantitative measure of variable importance
 importance(rf_model)
@@ -551,6 +587,75 @@ varImpPlot(rf_model)
 # 3. LIMIT_BAL
 # 4. AMT_PC2
 # 5. AMT_PC1
+
+#----------------------------------------------
+#   Plot ROC curve
+#----------------------------------------------
+
+install.packages("pROC")
+library(pROC)
+
+test_auc = auc(testing$default, test_prob_rf[,2])
+test_auc #Area under the curve: 0.803
+plot(roc(testing$default, test_prob_rf[,2]))
+
+
+#----------------------------------------------
+#   Boosting
+#----------------------------------------------
+
+install.packages("gbm", dependencies =TRUE)
+library(gbm)
+
+#reset variables
+training = resetTraining
+#remove ID and Target from model
+
+excludeID = which(colnames(training)=="ID")
+excludeTarget = which(colnames(training)=="default")
+
+x = model.matrix(~ ., training[, c(-excludeID, -excludeTarget)])
+y = training$default
+
+testing = resetTesting
+#remove ID and Target from model
+z = model.matrix(~ ., testing[, c(-excludeID, -excludeTarget)])
+a = testing$default
+
+set.seed(42)
+
+#cv.fit_lasso = cv.glmnet(x, y, family = 'binomial', alpha = 1)
+
+
+# defining some parameters
+gbm_depth = 5 #maximum nodes per tree
+gbm_n.min = 5 #minimum number of observations in the trees terminal, important effect on overfitting
+gbm_shrinkage=0.001 #learning rate
+cores_num = 4 #number of cores
+gbm_cv.folds=5 #number of cross-validation folds to perform
+num_trees = 4000
+
+# fit initial model
+gbm_fit = gbm(training$default ~. -ID, data = training,
+              distribution='bernoulli', 
+              n.trees=num_trees, #the number of GBM interaction
+              interaction.depth= gbm_depth,
+              n.minobsinnode = gbm_n.min, 
+              shrinkage=gbm_shrinkage, 
+              cv.folds=gbm_cv.folds, 
+              verbose = T, #print the preliminary output
+              n.cores = cores_num
+)
+
+summary(gbm_fit)
+
+
+best.iter = gbm.perf(gbm_fit, method = "cv")
+###How many trees should we use?
+
+testing$probability = predict(gbm_fit, testing, n.trees = best.iter, type = "response")
+#probability of MM
+
 
 #----------------------------------------------
 #   Predict on validation file
