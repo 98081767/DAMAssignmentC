@@ -598,7 +598,7 @@ plot(roc(testing$default, test_prob_rf[,2]))
 
 
 #----------------------------------------------
-#   Boosting (F1: 0.5721593, sensitivity/recall: 0.4677, precision/pos pred value: 0.7366)
+#   Boosting (F1: 0.5853835, sensitivity/recall: 0.4833, precision/pos pred value: 0.7422)
 #----------------------------------------------
 
 install.packages("gbm", dependencies =TRUE)
@@ -672,33 +672,38 @@ testing$prediction = as.factor(testing$prediction)
 boost_confusion = confusionMatrix(testing$prediction, testing$default, positive="Y")
 
 
-boost_confusion$byClass["F1"] #0.5721593
+boost_confusion$byClass["F1"] #0.5853835
 boost_confusion
-#             Reference
+
+#when ntrees: 20,000
+#               Reference
 # Prediction    N    Y
-#           N 4975  891
-#           Y  280  783
+#           N 4974  865
+#           Y  281  809
 # 
-# Accuracy : 0.831                
-# 95% CI : (0.822, 0.8398)      
+# Accuracy : 0.8346               
+# 95% CI : (0.8256, 0.8433)     
 # No Information Rate : 0.7584               
 # P-Value [Acc > NIR] : < 0.00000000000000022
 # 
-# Kappa : 0.4733               
+# Kappa : 0.4878               
 # Mcnemar's Test P-Value : < 0.00000000000000022
 # 
-# Sensitivity : 0.4677               
-# Specificity : 0.9467               
-# Pos Pred Value : 0.7366               
-# Neg Pred Value : 0.8481               
+# Sensitivity : 0.4833               
+# Specificity : 0.9465               
+# Pos Pred Value : 0.7422               
+# Neg Pred Value : 0.8519               
 # Prevalence : 0.2416               
-# Detection Rate : 0.1130               
-# Detection Prevalence : 0.1534               
-# Balanced Accuracy : 0.7072               
+# Detection Rate : 0.1168               
+# Detection Prevalence : 0.1573               
+# Balanced Accuracy : 0.7149               
 # 
-# 'Positive' Class : Y  
+# 'Positive' Class : Y 
 
-
+#plot roc curve
+test_auc = auc(testing$default, testing$probability)
+test_auc #Area under the curve: 0.8152
+plot(roc(testing$default, testing$probability))
 
 
 #----------------------------------------------
