@@ -543,9 +543,6 @@ test_prob_rf = predict(rf_model, testing, type="prob")
 test_predictions_rf = predict(rf_model, testing, type="class")
 rf_confusion = confusionMatrix(data = as.factor(test_predictions_rf), testing$default, positive="Y")
 
-#predictions for test set
-#test_predictions_rf = data.frame(testing, rf_model$test$predicted)
-#rf_confusion = confusionMatrix(data = as.factor(test_predictions_rf$rf_model.test.predicted), testing$Target, positive="1")
 
 rf_confusion$byClass["F1"] #0.5614414
 rf_confusion
@@ -601,7 +598,7 @@ plot(roc(testing$default, test_prob_rf[,2]))
 
 
 #----------------------------------------------
-#   Boosting
+#   Boosting (F1: 0.5101962, sensitivity/recall: 0.39606, precision/pos pred value: 0.71676)
 #----------------------------------------------
 
 install.packages("gbm", dependencies =TRUE)
@@ -622,6 +619,12 @@ testing = resetTesting
 z = model.matrix(~ ., testing[, c(-excludeID, -excludeTarget)])
 a = testing$default
 
+training$default_binary = 0
+training[training$default == "Y", "default_binary"] = 1
+
+testing$default_binary = 0
+testing[testing$default == "Y", "default_binary"] = 1
+
 set.seed(42)
 
 #cv.fit_lasso = cv.glmnet(x, y, family = 'binomial', alpha = 1)
@@ -631,12 +634,12 @@ set.seed(42)
 gbm_depth = 5 #maximum nodes per tree
 gbm_n.min = 5 #minimum number of observations in the trees terminal, important effect on overfitting
 gbm_shrinkage=0.001 #learning rate
-cores_num = 4 #number of cores
+cores_num = 2 #number of cores
 gbm_cv.folds=5 #number of cross-validation folds to perform
-num_trees = 4000
+num_trees = 10000
 
 # fit initial model
-gbm_fit = gbm(training$default ~. -ID, data = training,
+gbm_fit = gbm(default_binary ~. -ID, data = training[, c(-excludeTarget)],
               distribution='bernoulli', 
               n.trees=num_trees, #the number of GBM interaction
               interaction.depth= gbm_depth,
@@ -649,12 +652,53 @@ gbm_fit = gbm(training$default ~. -ID, data = training,
 
 summary(gbm_fit)
 
-
-best.iter = gbm.perf(gbm_fit, method = "cv")
 ###How many trees should we use?
+best.iter = gbm.perf(gbm_fit, method = "cv")
+
+#test_prob_rf = predict(rf_model, testing, type="prob")
 
 testing$probability = predict(gbm_fit, testing, n.trees = best.iter, type = "response")
-#probability of MM
+#probability of Y
+
+# # Modify the probability threshold to see if you can get a better accuracy
+testing$prediction = "N"
+testing[testing$probability >= 0.5, "prediction"] = "Y"
+testing$default_binary = as.factor(testing$default_binary)
+testing$prediction = as.factor(testing$prediction)
+
+
+#predictions for test set
+
+boost_confusion = confusionMatrix(testing$prediction, testing$default, positive="Y")
+
+
+boost_confusion$byClass["F1"] #0.5101962
+boost_confusion
+#               Reference
+# Prediction    N    Y
+#           N 4993 1011
+#           Y  262  663
+# 
+# Accuracy : 0.8163               
+# 95% CI : (0.807, 0.8253)      
+# No Information Rate : 0.7584               
+# P-Value [Acc > NIR] : < 0.00000000000000022
+# 
+# Kappa : 0.4085               
+# Mcnemar's Test P-Value : < 0.00000000000000022
+#                                                
+#             Sensitivity : 0.39606              
+#             Specificity : 0.95014              
+#          Pos Pred Value : 0.71676              
+#          Neg Pred Value : 0.83161              
+#              Prevalence : 0.24159              
+#          Detection Rate : 0.09568              
+#    Detection Prevalence : 0.13350              
+#       Balanced Accuracy : 0.67310              
+#                                                
+#        'Positive' Class : Y 
+
+
 
 
 #----------------------------------------------
