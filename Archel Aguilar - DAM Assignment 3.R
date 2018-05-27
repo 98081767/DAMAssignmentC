@@ -598,7 +598,7 @@ plot(roc(testing$default, test_prob_rf[,2]))
 
 
 #----------------------------------------------
-#   Boosting (F1: 0.5101962, sensitivity/recall: 0.39606, precision/pos pred value: 0.71676)
+#   Boosting (F1: 0.5721593, sensitivity/recall: 0.4677, precision/pos pred value: 0.7366)
 #----------------------------------------------
 
 install.packages("gbm", dependencies =TRUE)
@@ -636,7 +636,7 @@ gbm_n.min = 5 #minimum number of observations in the trees terminal, important e
 gbm_shrinkage=0.001 #learning rate
 cores_num = 2 #number of cores
 gbm_cv.folds=5 #number of cross-validation folds to perform
-num_trees = 10000
+num_trees = 20000
 
 # fit initial model
 gbm_fit = gbm(default_binary ~. -ID, data = training[, c(-excludeTarget)],
@@ -672,31 +672,31 @@ testing$prediction = as.factor(testing$prediction)
 boost_confusion = confusionMatrix(testing$prediction, testing$default, positive="Y")
 
 
-boost_confusion$byClass["F1"] #0.5101962
+boost_confusion$byClass["F1"] #0.5721593
 boost_confusion
-#               Reference
+#             Reference
 # Prediction    N    Y
-#           N 4993 1011
-#           Y  262  663
+#           N 4975  891
+#           Y  280  783
 # 
-# Accuracy : 0.8163               
-# 95% CI : (0.807, 0.8253)      
+# Accuracy : 0.831                
+# 95% CI : (0.822, 0.8398)      
 # No Information Rate : 0.7584               
 # P-Value [Acc > NIR] : < 0.00000000000000022
 # 
-# Kappa : 0.4085               
+# Kappa : 0.4733               
 # Mcnemar's Test P-Value : < 0.00000000000000022
-#                                                
-#             Sensitivity : 0.39606              
-#             Specificity : 0.95014              
-#          Pos Pred Value : 0.71676              
-#          Neg Pred Value : 0.83161              
-#              Prevalence : 0.24159              
-#          Detection Rate : 0.09568              
-#    Detection Prevalence : 0.13350              
-#       Balanced Accuracy : 0.67310              
-#                                                
-#        'Positive' Class : Y 
+# 
+# Sensitivity : 0.4677               
+# Specificity : 0.9467               
+# Pos Pred Value : 0.7366               
+# Neg Pred Value : 0.8481               
+# Prevalence : 0.2416               
+# Detection Rate : 0.1130               
+# Detection Prevalence : 0.1534               
+# Balanced Accuracy : 0.7072               
+# 
+# 'Positive' Class : Y  
 
 
 
