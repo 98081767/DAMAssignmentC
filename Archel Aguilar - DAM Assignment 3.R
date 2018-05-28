@@ -107,35 +107,6 @@ nrow(otrain[otrain$default=="Y",]) / nrow(otrain) #0.24 proportion of defaults
 
 #pairs(otrain)
 
-# otest = read.csv("AT3_credit_test_STUDENT.csv")
-# str(otest)
-# 
-# otest$EDUCATION = as.factor(otest$EDUCATION)
-# otest$MARRIAGE = as.factor(otest$MARRIAGE)
-# otest$SEX = as.factor(otest$SEX)
-# 
-# nrow(otest)     #6899
-# ggplot(data.frame(otest$LIMIT_BAL), aes(x="Balance Limit", y=otest$LIMIT_BAL)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + ylab("$")
-# ggplot(data.frame(otest$AGE), aes(x="Age", y=otest$AGE)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-# ggplot(data.frame(otest$AGE), aes(x=otest$AGE)) + geom_bar() + xlab("Age")
-# #no ages above 100
-# ggplot(data.frame(otest$SEX), aes(x=otest$SEX)) + geom_bar() + xlab("Sex")
-# #no dogs, dolphins
-# ggplot(data.frame(otest$EDUCATION), aes(x=otest$EDUCATION)) + geom_bar() + xlab("Education")
-# #5 and 6 are both unknown need to combine.
-# ggplot(data.frame(otest$MARRIAGE), aes(x=otest$MARRIAGE)) + geom_bar() + xlab("Marriage")
-# ggplot(data.frame(otest$PAY_PC1), aes(x="Pay PC1", y=otest$PAY_PC1)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-# ggplot(data.frame(otest$PAY_PC2), aes(x="Pay PC2", y=otest$PAY_PC2)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-# ggplot(data.frame(otest$PAY_PC3), aes(x="Pay PC3", y=otest$PAY_PC3)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-# ggplot(data.frame(otest$AMT_PC1), aes(x="Amt PC1", y=otest$AMT_PC1)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-# ggplot(data.frame(otest$AMT_PC2), aes(x="Amt PC2", y=otest$AMT_PC2)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-# ggplot(data.frame(otest$AMT_PC3), aes(x="Amt PC3", y=otest$AMT_PC3)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-# ggplot(data.frame(otest$AMT_PC4), aes(x="Amt PC4", y=otest$AMT_PC4)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-# ggplot(data.frame(otest$AMT_PC5), aes(x="Amt PC5", y=otest$AMT_PC5)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-# ggplot(data.frame(otest$AMT_PC6), aes(x="Amt PC6", y=otest$AMT_PC6)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-# ggplot(data.frame(otest$AMT_PC7), aes(x="Amt PC7", y=otest$AMT_PC7)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-# #no defaults
-
 
 
 #---------------------------------------------
@@ -501,9 +472,6 @@ rf.fit
 
 tuneRF(training[,c(-excludeID, -excludeTarget)], training$default, ntreeTry =1000, stepFactor = 2, improve = 1, trace=T, plot=T)
 
-
-
-
 #Build random forest model
 #-mytry = number of random variables selcted at each tree split (it's good to have variety for each tree to learn)
 #  default 
@@ -637,7 +605,7 @@ gbm_n.min = 5 #minimum number of observations in the trees terminal, important e
 gbm_shrinkage=0.001 #learning rate
 cores_num = 2 #number of cores
 gbm_cv.folds=5 #number of cross-validation folds to perform
-num_trees = 20000
+num_trees = 100 #20000 is best
 
 # fit initial model
 gbm_fit = gbm(default_binary ~. -ID, data = training[, c(-excludeTarget)],
@@ -711,73 +679,67 @@ plot(roc(testing$default, testing$probability))
 #   Predict on validation file
 #----------------------------------------------
 
-# cpurvalid = read.csv("repurchase_validation.csv")
-# str(cpurvalid)
-# 
-# cpurvalid$Target                     = as.factor(0)
-# cpurvalid$ID                         = as.integer(0)
-# cpurvalid$age_of_vehicle_years       = as.factor(cpurvalid$age_of_vehicle_years)
-# cpurvalid$sched_serv_warr            = as.factor(cpurvalid$sched_serv_warr )         
-# cpurvalid$non_sched_serv_warr        = as.factor(cpurvalid$non_sched_serv_warr)
-# cpurvalid$sched_serv_paid            = as.factor(cpurvalid$sched_serv_paid)
-# cpurvalid$non_sched_serv_paid        = as.factor(cpurvalid$non_sched_serv_paid)
-# cpurvalid$total_paid_services        = as.factor(cpurvalid$total_paid_services)
-# cpurvalid$total_services             = as.factor(cpurvalid$total_services)
-# cpurvalid$mth_since_last_serv        = as.factor(cpurvalid$mth_since_last_serv)
-# cpurvalid$annualised_mileage         = as.factor(cpurvalid$annualised_mileage)
-# cpurvalid$num_dealers_visited        = as.factor(cpurvalid$num_dealers_visited)
-# cpurvalid$num_serv_dealer_purchased  = as.factor(cpurvalid$num_serv_dealer_purchased)
-# 
-# summary(cpurvalid)
-# 
+ovalid = read.csv("AT3_credit_test_STUDENT.csv")
+
 # #------------------
 # # check data
 # #------------------
-# #frequency charts
-# ggplot(data.frame(cpurvalid$age_band), aes(x=cpurvalid$age_band)) + geom_bar() + xlab("Age Band")
-# ggplot(data.frame(cpurvalid$gender), aes(x=cpurvalid$gender)) + geom_bar() + xlab("Gender")
-# ggplot(data.frame(cpurvalid$car_model), aes(x=cpurvalid$car_model)) + geom_bar() + xlab("Car Model")
-# ggplot(data.frame(cpurvalid$car_segment), aes(x=cpurvalid$car_segment)) + geom_bar() + xlab("Car Type")
-# ggplot(data.frame(cpurvalid$age_of_vehicle_years), aes(x=cpurvalid$age_of_vehicle_years)) + geom_bar() + xlab("Vehicle Age (Deciles)")
-# ggplot(data.frame(cpurvalid$sched_serv_warr), aes(x=cpurvalid$sched_serv_warr)) + geom_bar() + xlab("# Scheduled services (Deciles)")
-# ggplot(data.frame(cpurvalid$non_sched_serv_warr), aes(x=cpurvalid$non_sched_serv_warr)) + geom_bar() + xlab("# Non-Scheduled services (Deciles)")
-# ggplot(data.frame(cpurvalid$sched_serv_paid), aes(x=cpurvalid$sched_serv_paid)) + geom_bar() + xlab("Amount paid for scheduled services (Deciles)")
-# ggplot(data.frame(cpurvalid$non_sched_serv_paid), aes(x=cpurvalid$non_sched_serv_paid)) + geom_bar() + xlab("Amount paid for non scheduled services (Deciles)")
-# ggplot(data.frame(cpurvalid$total_paid_services), aes(x=cpurvalid$total_paid_services)) + geom_bar() + xlab("Amount paid for all services (Deciles)")
-# ggplot(data.frame(cpurvalid$total_services), aes(x=cpurvalid$total_services)) + geom_bar() + xlab("Total # services (Deciles)")
-# ggplot(data.frame(cpurvalid$mth_since_last_serv), aes(x=cpurvalid$mth_since_last_serv)) + geom_bar() + xlab("Months since last service (Deciles)")
-# ggplot(data.frame(cpurvalid$annualised_mileage), aes(x=cpurvalid$annualised_mileage)) + geom_bar() + xlab("Months since last service (Deciles)")
-# ggplot(data.frame(cpurvalid$num_dealers_visited), aes(x=cpurvalid$num_dealers_visited)) + geom_bar() + xlab("Number of dealers visited for servicing (Deciles)")
-# ggplot(data.frame(cpurvalid$num_serv_dealer_purchased), aes(x=cpurvalid$num_serv_dealer_purchased)) + geom_bar() + xlab("Number of services at purchased dealer (Deciles)")
-# 
-# 
-# 
-# str(cpurvalid)
-# cpurvalid = cpurvalid[c(17,16,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15)]
-# str(cpurvalid)
-# 
-# firstrow = training[1,]
-# 
-# cpurvalid = rbind(training[1,], cpurvalid)
-# cpurvalid = cpurvalid[-1,]
-# 
-# 
-# #probability
-# cpurvalid.prob_rf = predict(rf_model, cpurvalid, type="prob")
-# cpurvalid.prob_rf = as.data.frame(cpurvalid.prob_rf)
-# cpurvalid$prob_0 = as.numeric(cpurvalid.prob_rf[,1])
-# cpurvalid$prob_1 = as.numeric(cpurvalid.prob_rf[,2])
-# 
-# #predictions for test set
-# cpurvalid.predictions_rf = predict(rf_model, cpurvalid, type="class")
-# 
-# cpurvalid$Target = cpurvalid.predictions_rf
-# cpurvalid.predTarget = nrow(cpurvalid[cpurvalid$Target=="1",]) #1235
-# #proportion of target predicted
-# cpurvalid.predTarget / nrow(cpurvalid) #0.0247 -similar to training proportion
-# 
-# write.csv(cpurvalid, "predicted_repurchase_validation.csv")
 
+str(ovalid)
+
+ovalid$EDUCATION = as.factor(ovalid$EDUCATION)
+ovalid$MARRIAGE = as.factor(ovalid$MARRIAGE)
+ovalid$SEX = as.factor(ovalid$SEX)
+
+nrow(ovalid)     #6899
+ggplot(data.frame(ovalid$LIMIT_BAL), aes(x="Balance Limit", y=ovalid$LIMIT_BAL)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + ylab("$")
+ggplot(data.frame(ovalid$AGE), aes(x="Age", y=ovalid$AGE)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(ovalid$AGE), aes(x=ovalid$AGE)) + geom_bar() + xlab("Age")
+#some outliers in age - over 120 years of age
+ggplot(data.frame(ovalid$SEX), aes(x=ovalid$SEX)) + geom_bar() + xlab("Sex")
+#one record of cat, dog, dolphin - need to change to NA
+
+ovalid$SEX = as.character(ovalid$SEX)
+ovalid$SEX[ovalid$SEX=="cat"] = "Other"
+ovalid$SEX[ovalid$SEX=="dog"] = "Other"
+ovalid$SEX[ovalid$SEX=="dolphin"] = "Other"
+#write.csv(ovalid, "test.csv")
+ovalid$SEX = as.factor(ovalid$SEX)
+#ovalid = droplevels(ovalid)
+
+ggplot(data.frame(ovalid$EDUCATION), aes(x=ovalid$EDUCATION)) + geom_bar() + xlab("Education")
+ggplot(data.frame(ovalid$MARRIAGE), aes(x=ovalid$MARRIAGE)) + geom_bar() + xlab("Marriage")
+ggplot(data.frame(ovalid$PAY_PC1), aes(x="Pay PC1", y=ovalid$PAY_PC1)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(ovalid$PAY_PC2), aes(x="Pay PC2", y=ovalid$PAY_PC2)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(ovalid$PAY_PC3), aes(x="Pay PC3", y=ovalid$PAY_PC3)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(ovalid$AMT_PC1), aes(x="Amt PC1", y=ovalid$AMT_PC1)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(ovalid$AMT_PC2), aes(x="Amt PC2", y=ovalid$AMT_PC2)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(ovalid$AMT_PC3), aes(x="Amt PC3", y=ovalid$AMT_PC3)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(ovalid$AMT_PC4), aes(x="Amt PC4", y=ovalid$AMT_PC4)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(ovalid$AMT_PC5), aes(x="Amt PC5", y=ovalid$AMT_PC5)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(ovalid$AMT_PC6), aes(x="Amt PC6", y=ovalid$AMT_PC6)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(ovalid$AMT_PC7), aes(x="Amt PC7", y=ovalid$AMT_PC7)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(ovalid$default), aes(x=ovalid$default)) + geom_bar() + xlab("Default")
+
+
+# #------------------
+# # write predictions to file
+# #------------------
+
+validation_out = NULL 
+validation_out$ID = ovalid$ID
+validation_out$prob = predict(gbm_fit, ovalid, n.trees = best.iter, type = "response")
+validation_out$default = as.character(validation_out$default)
+validation_out$default = "N"
+validation_out = as.data.frame(validation_out)
+
+validation_out[validation_out$prob >= 0.5, "default"] = "Y"
+validation_out$default = as.factor(validation_out$default)
+rownames(validation_out) = c()
+
+output = validation_out[,c("ID","default")]
+
+write.csv(output, "AT3_DAM_IT_credit_sample_UPLOAD.csv", row.names = FALSE)
 
 #---------------------- END ---------------------------
 
