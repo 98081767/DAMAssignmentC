@@ -575,7 +575,7 @@ plot(roc(testing$default, test_prob_rf[,2]))
 #   Boosting (F1: 0.5853835, sensitivity/recall: 0.4833, precision/pos pred value: 0.7422)
 #----------------------------------------------
 
-install.packages("gbm", dependencies =TRUE)
+install.packages("gbm", dependencies=TRUE)
 library(gbm)
 
 #reset variables
@@ -608,7 +608,7 @@ gbm_n.min = 5 #minimum number of observations in the trees terminal, important e
 gbm_shrinkage=0.001 #learning rate
 cores_num = 2 #number of cores
 gbm_cv.folds=5 #number of cross-validation folds to perform
-num_trees = 1000 #20000 is best
+num_trees = 10000 #20000 is best
 
 # fit initial model
 gbm_fit = gbm(default_binary ~. -ID, data = training[, c(-excludeTarget)],
@@ -734,10 +734,13 @@ validation_out$ID = ovalid$ID
 validation_out$prob = predict(gbm_fit, ovalid, n.trees = best.iter, type = "response")
 validation_out$default = as.character(validation_out$default)
 validation_out$default = "N"
-validation_out = as.data.frame(validation_out)
 
+validation_out$default = as.character(validation_out$default)
 validation_out[validation_out$prob >= 0.5, "default"] = "Y"
 validation_out$default = as.factor(validation_out$default)
+validation_out = as.data.frame(validation_out)
+
+
 rownames(validation_out) = c()
 
 output = validation_out[,c("ID","default")]
