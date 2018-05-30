@@ -605,7 +605,7 @@ gbm_n.min = 5 #minimum number of observations in the trees terminal, important e
 gbm_shrinkage=0.001 #learning rate
 cores_num = 2 #number of cores
 gbm_cv.folds=5 #number of cross-validation folds to perform
-num_trees = 100 #20000 is best
+num_trees = 20000 #20000 is best
 
 # fit initial model
 gbm_fit = gbm(default_binary ~. -ID, data = training[, c(-excludeTarget)],
