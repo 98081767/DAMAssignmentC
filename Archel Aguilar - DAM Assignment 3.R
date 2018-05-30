@@ -1,5 +1,10 @@
 #-----------------------------------------
-#Archel Aguilar (980817867)
+# DAM-I.T.
+#
+# Archel Aguilar (980817867)
+# Jack
+# Jay
+#
 # DAM - Assignment 3
 #
 # Credit Card Default Model
@@ -493,7 +498,7 @@ rf_model
 # 
 # OOB estimate of  error rate: 18.19% <--misclassification rate
 # Confusion matrix:
-#   N    Y class.error
+#     N    Y class.error
 # N 11386  877  0.07151594
 # Y  2064 1845  0.52801228
 
@@ -596,8 +601,6 @@ testing[testing$default == "Y", "default_binary"] = 1
 
 set.seed(42)
 
-#cv.fit_lasso = cv.glmnet(x, y, family = 'binomial', alpha = 1)
-
 
 # defining some parameters
 gbm_depth = 5 #maximum nodes per tree
@@ -605,7 +608,7 @@ gbm_n.min = 5 #minimum number of observations in the trees terminal, important e
 gbm_shrinkage=0.001 #learning rate
 cores_num = 2 #number of cores
 gbm_cv.folds=5 #number of cross-validation folds to perform
-num_trees = 20000 #20000 is best
+num_trees = 1000 #20000 is best
 
 # fit initial model
 gbm_fit = gbm(default_binary ~. -ID, data = training[, c(-excludeTarget)],
