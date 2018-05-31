@@ -78,6 +78,7 @@ library(reshape2)
 
 
 ggplot(data.frame(otrain$LIMIT_BAL), aes(x="Balance Limit", y=otrain$LIMIT_BAL)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + ylab("$")
+hist(otrain$LIMIT_BAL)
 ggplot(data.frame(otrain$AGE), aes(x="Age", y=otrain$AGE)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ggplot(data.frame(otrain$AGE), aes(x=otrain$AGE)) + geom_bar() + xlab("Age")
 #some outliers in age - over 120 years of age
@@ -105,6 +106,32 @@ ggplot(data.frame(otrain$AMT_PC5), aes(x="Amt PC5", y=otrain$AMT_PC5)) + geom_bo
 ggplot(data.frame(otrain$AMT_PC6), aes(x="Amt PC6", y=otrain$AMT_PC6)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ggplot(data.frame(otrain$AMT_PC7), aes(x="Amt PC7", y=otrain$AMT_PC7)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ggplot(data.frame(otrain$default), aes(x=otrain$default)) + geom_bar() + xlab("Default")
+
+hist(otrain$PAY_PC1)
+hist(otrain$PAY_PC2)
+hist(otrain$PAY_PC3)
+hist(otrain$AMT_PC1)
+hist(otrain$AMT_PC2)
+hist(otrain$AMT_PC3)
+hist(otrain$AMT_PC4)
+hist(otrain$AMT_PC5)
+hist(otrain$AMT_PC6)
+hist(otrain$AMT_PC7)
+
+ggplot(data.frame(otrain$PAY_PC1, otrain$default), aes(x=otrain$default, y=otrain$PAY_PC1)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+#negative coeffients have impact on defaults - defaulters tend to have more -ve (pay dulies)
+ggplot(data.frame(otrain$AMT_PC1, otrain$default), aes(x=otrain$default, y=otrain$AMT_PC1)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(otrain$AGE, otrain$default), aes(x=otrain$default, y=otrain$AGE)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(otrain$LIMIT_BAL, otrain$default), aes(x=otrain$default, y=otrain$LIMIT_BAL)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(as.integer(otrain$EDUCATION), otrain$default), aes(x=otrain$default, y=as.integer(otrain$EDUCATION))) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+#most of the defaults have lower education
+
+boxplot(as.integer(otrain$EDUCATION) ~ otrain$default, data=otrain)
+        
+plot(otrain$PAY_PC1, otrain$LIMIT_BAL, col=otrain$default)
+
+contrasts(otrain$default)
+
 
 #number of defaults 
 nrow(otrain[otrain$default=="Y",]) - #5583
@@ -390,7 +417,7 @@ a = testing$default
 rpart_model = rpart(training$default ~.-ID,data = training, method="class") #use method ="anova" for regression problems
 
 #plot tree
-prp(rpart_model)
+prp(rpart_model, digits = -3)
 
 
 #prediction
@@ -549,6 +576,9 @@ importance(rf_model)
 #sorted plot of importance
 varImpPlot(rf_model)
 
+plot(rf_model)
+
+
 #mean decrease accuracy = how much of the model accuracy decreases if we drop that variable
 #high value of mean decrease accuracy or gini scores higher importance of the variable in the model
 
@@ -624,6 +654,8 @@ gbm_fit = gbm(default_binary ~. -ID, data = training[, c(-excludeTarget)],
 
 summary(gbm_fit)
 
+
+
 ###How many trees should we use?
 best.iter = gbm.perf(gbm_fit, method = "cv")
 
@@ -677,6 +709,12 @@ test_auc = auc(testing$default, testing$probability)
 test_auc #Area under the curve: 0.8152
 plot(roc(testing$default, testing$probability))
 
+#show partial dependencies
+plot(gbm_fit, i="PAY_PC1")
+plot(gbm_fit, i="AGE")
+plot(gbm_fit, i="LIMIT_BAL")
+plot(gbm_fit, i="AMT_PC2")
+plot(gbm_fit, i="EDUCATION")
 
 #----------------------------------------------
 #   Predict on validation file
