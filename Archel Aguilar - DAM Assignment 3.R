@@ -112,6 +112,14 @@ otrain$SEX = as.factor(otrain$SEX)
 #otrain = droplevels(otrain)
 
 ggplot(data.frame(otrain$EDUCATION), aes(x=otrain$EDUCATION)) + geom_bar() + xlab("Education")
+
+#group education (1= university or higher, 2=highschool, 3=Other)
+otrain$EDU_ADJ[otrain$EDUCATION==1 | otrain$EDUCATION==2] = 1
+otrain$EDU_ADJ[otrain$EDUCATION==3] = 2
+otrain$EDU_ADJ[otrain$EDUCATION==0 | otrain$EDUCATION==4 | otrain$EDUCATION==5 | otrain$EDUCATION==6] = 3
+otrain$EDU_ADJ = as.factor(otrain$EDU_ADJ)
+
+
 ggplot(data.frame(otrain$MARRIAGE), aes(x=otrain$MARRIAGE)) + geom_bar() + xlab("Marriage")
 ggplot(data.frame(otrain$PAY_PC1), aes(x="Pay PC1", y=otrain$PAY_PC1)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ggplot(data.frame(otrain$PAY_PC2), aes(x="Pay PC2", y=otrain$PAY_PC2)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
@@ -168,7 +176,7 @@ library(sjstats)
 install.packages('caret', dependencies = TRUE)
 library(caret)
 
-set.seed(42)
+set.seed(12345) #42
 
 #splits sample group maintaining the ratio of the target
 train = createDataPartition(y = otrain$default, p = 0.7, list = F)
@@ -513,6 +521,7 @@ set.seed(42)
 #xmodel = "default ~. -ID"
 #xmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + EDUCATION + AMT_PC1 + AMT_PC2 + AMT_PC6 + AMT_PC5 + AMT_PC7 + AMT_PC4 + AMT_PC3 + PAY_PC2 + PAY_PC3 + MARRIAGE + SEX - ID"
 #xmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID"
+#xmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDU_ADJ + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID"
 xmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID"
 
 #run cross validation - takes a long time
