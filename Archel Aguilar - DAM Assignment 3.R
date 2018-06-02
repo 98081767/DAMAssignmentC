@@ -54,6 +54,11 @@ otrain$EDUCATION = as.factor(otrain$EDUCATION)
 otrain$MARRIAGE = as.factor(otrain$MARRIAGE)
 otrain$SEX = as.factor(otrain$SEX)
 
+
+
+
+
+
 #---------------------------------------------
 # Analyse data
 #---------------------------------------------
@@ -81,6 +86,18 @@ ggplot(data.frame(otrain$LIMIT_BAL), aes(x="Balance Limit", y=otrain$LIMIT_BAL))
 hist(otrain$LIMIT_BAL)
 ggplot(data.frame(otrain$AGE), aes(x="Age", y=otrain$AGE)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ggplot(data.frame(otrain$AGE), aes(x=otrain$AGE)) + geom_bar() + xlab("Age")
+
+mean(otrain$AGE)
+
+
+#convert age to deciles
+#quantile(otrain$AGE, prob = seq(0, 1, length = 11), type = 5)
+#otrain$AGEDEC = cut_number(otrain$AGE, n=11, closed="left")
+#ggplot(data.frame(otrain$AGEDEC), aes(x=otrain$AGEDEC)) + geom_bar() + xlab("Age Decile")
+#remove age
+#otrain = within(otrain, rm("AGE"))
+
+
 #some outliers in age - over 120 years of age
 ggplot(data.frame(otrain$SEX), aes(x=otrain$SEX)) + geom_bar() + xlab("Sex")
 #one record of cat, dog, dolphin - need to change to NA
@@ -107,7 +124,7 @@ ggplot(data.frame(otrain$AMT_PC6), aes(x="Amt PC6", y=otrain$AMT_PC6)) + geom_bo
 ggplot(data.frame(otrain$AMT_PC7), aes(x="Amt PC7", y=otrain$AMT_PC7)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ggplot(data.frame(otrain$default), aes(x=otrain$default)) + geom_bar() + xlab("Default")
 
-hist(otrain$PAY_PC1)
+hist(otrain$PAY_PC1) 
 hist(otrain$PAY_PC2)
 hist(otrain$PAY_PC3)
 hist(otrain$AMT_PC1)
@@ -139,6 +156,8 @@ nrow(otrain[otrain$default=="Y",]) / nrow(otrain) #0.24 proportion of defaults
 
 #pairs(otrain)
 
+install.packages("sjstats")
+library(sjstats)
 
 
 #---------------------------------------------
@@ -204,7 +223,7 @@ testing$probability = predict(def.glm, newdata = testing, type = "response")
 # assume that the optimum probability threshold is 0.5
 # Create the class prediction - our target is Y
 testing$prediction = "N"
-testing[testing$probability >= 0.5, "prediction"] = "Y"
+testing[testing$probability >= 0.65, "prediction"] = "Y"
 
 
 ###########################
@@ -638,7 +657,7 @@ gbm_n.min = 5 #minimum number of observations in the trees terminal, important e
 gbm_shrinkage=0.001 #learning rate
 cores_num = 2 #number of cores
 gbm_cv.folds=5 #number of cross-validation folds to perform
-num_trees = 10000 #20000 is best
+num_trees = 15000 #20000 is best
 
 # fit initial model
 gbm_fit = gbm(default_binary ~. -ID, data = training[, c(-excludeTarget)],
@@ -666,7 +685,7 @@ testing$probability = predict(gbm_fit, testing, n.trees = best.iter, type = "res
 
 # # Modify the probability threshold to see if you can get a better accuracy
 testing$prediction = "N"
-testing[testing$probability >= 0.5, "prediction"] = "Y"
+testing[testing$probability >= 0.65, "prediction"] = "Y"
 testing$default_binary = as.factor(testing$default_binary)
 testing$prediction = as.factor(testing$prediction)
 
