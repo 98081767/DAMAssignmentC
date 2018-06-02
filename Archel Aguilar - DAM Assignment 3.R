@@ -644,20 +644,41 @@ a = testing$default
 
 training$default_binary = 0
 training[training$default == "Y", "default_binary"] = 1
+training$default_binary = as.factor(training$default_binary)
 
 testing$default_binary = 0
 testing[testing$default == "Y", "default_binary"] = 1
+testing$default_binary = as.factor(testing$default_binary)
+
 
 set.seed(42)
 
 
+#tuning
+fitControl = trainControl(## 10-fold CV
+  method = "repeatedcv",
+  number = 10,
+  ## repeated ten times
+  repeats = 10)
+
+gbm_tune = train(default_binary~. -ID, data=training[, c(-excludeTarget)], 
+                 method = "gbm", 
+                 trControl = fitControl,
+                 ## This last option is actually one
+                 ## for gbm() that passes through
+                 verbose = FALSE)
+gbm_tune
+
+
+
+
 # defining some parameters
-gbm_depth = 5 #maximum nodes per tree
-gbm_n.min = 5 #minimum number of observations in the trees terminal, important effect on overfitting
-gbm_shrinkage=0.001 #learning rate
+gbm_depth = 3 #maximum nodes per tree
+gbm_n.min = 10 #minimum number of observations in the trees terminal, important effect on overfitting
+gbm_shrinkage=0.1 #learning rate
 cores_num = 2 #number of cores
 gbm_cv.folds=5 #number of cross-validation folds to perform
-num_trees = 15000 #20000 is best
+num_trees = 150 #20000 is best
 
 # fit initial model
 gbm_fit = gbm(default_binary ~. -ID, data = training[, c(-excludeTarget)],
