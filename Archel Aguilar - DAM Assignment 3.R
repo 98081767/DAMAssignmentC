@@ -7,6 +7,7 @@
 #
 # DAM - Assignment 3
 #
+#
 # Credit Card Default Model
 # 
 # Background: 
@@ -223,7 +224,7 @@ testing$probability = predict(def.glm, newdata = testing, type = "response")
 # assume that the optimum probability threshold is 0.5
 # Create the class prediction - our target is Y
 testing$prediction = "N"
-testing[testing$probability >= 0.65, "prediction"] = "Y"
+testing[testing$probability >= 0.5, "prediction"] = "Y"
 
 
 ###########################
@@ -521,7 +522,7 @@ rf.fit
 # Accuracy was used to select the optimal model using the largest value.
 # The final value used for the model was mtry = 12.
 
-tuneRF(training[,c(-excludeID, -excludeTarget)], training$default, ntreeTry =1000, stepFactor = 2, improve = 1, trace=T, plot=T)
+tuneRF(training[,c(-excludeID, -excludeTarget)], training$default, ntreeTry =2000, stepFactor = 2, improve = 1, trace=T, plot=T)
 
 #Build random forest model
 #-mytry = number of random variables selcted at each tree split (it's good to have variety for each tree to learn)
@@ -644,11 +645,11 @@ a = testing$default
 
 training$default_binary = 0
 training[training$default == "Y", "default_binary"] = 1
-training$default_binary = as.factor(training$default_binary)
+#training$default_binary = as.factor(training$default_binary)
 
 testing$default_binary = 0
 testing[testing$default == "Y", "default_binary"] = 1
-testing$default_binary = as.factor(testing$default_binary)
+#testing$default_binary = as.factor(testing$default_binary)
 
 
 set.seed(42)
@@ -656,7 +657,7 @@ set.seed(42)
 
 #tuning
 fitControl = trainControl(## 10-fold CV
-  method = "repeatedcv",
+  method = "repeatedcv", #repeatedcv
   number = 10,
   ## repeated ten times
   repeats = 10)
@@ -669,14 +670,18 @@ gbm_tune = train(default_binary~. -ID, data=training[, c(-excludeTarget)],
                  verbose = FALSE)
 gbm_tune
 
-
-
-
 # defining some parameters
+# gbm_depth = 3 #maximum nodes per tree
+# gbm_n.min = 10 #minimum number of observations in the trees terminal, important effect on overfitting
+# gbm_shrinkage=0.1 #learning rate
+# cores_num = 2 #number of cores
+# gbm_cv.folds=5 #number of cross-validation folds to perform
+# num_trees = 150 #20000 is best
+
 gbm_depth = 3 #maximum nodes per tree
 gbm_n.min = 10 #minimum number of observations in the trees terminal, important effect on overfitting
 gbm_shrinkage=0.1 #learning rate
-cores_num = 2 #number of cores
+cores_num = 1 #number of cores
 gbm_cv.folds=5 #number of cross-validation folds to perform
 num_trees = 150 #20000 is best
 
@@ -706,7 +711,7 @@ testing$probability = predict(gbm_fit, testing, n.trees = best.iter, type = "res
 
 # # Modify the probability threshold to see if you can get a better accuracy
 testing$prediction = "N"
-testing[testing$probability >= 0.65, "prediction"] = "Y"
+testing[testing$probability >= 0.5, "prediction"] = "Y"
 testing$default_binary = as.factor(testing$default_binary)
 testing$prediction = as.factor(testing$prediction)
 
@@ -716,33 +721,32 @@ testing$prediction = as.factor(testing$prediction)
 boost_confusion = confusionMatrix(testing$prediction, testing$default, positive="Y")
 
 
-boost_confusion$byClass["F1"] #0.5853835
+boost_confusion$byClass["F1"] #0.5251608
 boost_confusion
 
-#when ntrees: 20,000
-#               Reference
+# Reference
 # Prediction    N    Y
-#           N 4974  865
-#           Y  281  809
+# N 4980  980
+# Y  275  694
 # 
-# Accuracy : 0.8346               
-# 95% CI : (0.8256, 0.8433)     
-# No Information Rate : 0.7584               
-# P-Value [Acc > NIR] : < 0.00000000000000022
+# Accuracy : 0.8189          
+# 95% CI : (0.8096, 0.8279)
+# No Information Rate : 0.7584          
+# P-Value [Acc > NIR] : < 2.2e-16       
 # 
-# Kappa : 0.4878               
-# Mcnemar's Test P-Value : < 0.00000000000000022
+# Kappa : 0.4229          
+# Mcnemar's Test P-Value : < 2.2e-16       
 # 
-# Sensitivity : 0.4833               
-# Specificity : 0.9465               
-# Pos Pred Value : 0.7422               
-# Neg Pred Value : 0.8519               
-# Prevalence : 0.2416               
-# Detection Rate : 0.1168               
-# Detection Prevalence : 0.1573               
-# Balanced Accuracy : 0.7149               
+# Sensitivity : 0.4146          
+# Specificity : 0.9477          
+# Pos Pred Value : 0.7162          
+# Neg Pred Value : 0.8356          
+# Prevalence : 0.2416          
+# Detection Rate : 0.1002          
+# Detection Prevalence : 0.1398          
+# Balanced Accuracy : 0.6811          
 # 
-# 'Positive' Class : Y 
+# 'Positive' Class : Y       
 
 #plot roc curve
 test_auc = auc(testing$default, testing$probability)
@@ -810,13 +814,15 @@ ggplot(data.frame(ovalid$default), aes(x=ovalid$default)) + geom_bar() + xlab("D
 validation_out = NULL 
 validation_out$ID = ovalid$ID
 validation_out$prob = predict(gbm_fit, ovalid, n.trees = best.iter, type = "response")
-validation_out$default = as.character(validation_out$default)
-validation_out$default = "N"
+#validation_out$default = as.character(validation_out$default)
+validation_out$default = 0
 
-validation_out$default = as.character(validation_out$default)
-validation_out[validation_out$prob >= 0.5, "default"] = "Y"
-validation_out$default = as.factor(validation_out$default)
 validation_out = as.data.frame(validation_out)
+
+#validation_out$default = as.character(validation_out$default)
+validation_out[validation_out$prob >= 0.5, "default"] = 1
+validation_out$default = as.factor(validation_out$default)
+#validation_out = as.data.frame(validation_out)
 
 
 rownames(validation_out) = c()
