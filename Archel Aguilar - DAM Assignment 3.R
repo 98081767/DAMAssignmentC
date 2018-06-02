@@ -205,7 +205,10 @@ nrow(training[training$default=="N",]) #12263 - number of non defaults in traini
 #Recall:Sensitivtiy
 
 #include all except for identifier (ID)
-glmodel = "default ~. -ID" #all variables (AIC: 15805, F1: 0.660561, sensitivity/recall: 0.54640, precision/pos pred value: 0.83502)
+#glmodel = "default ~. -ID" #all variables (AIC: 15805, F1: 0.660561, sensitivity/recall: 0.54640, precision/pos pred value: 0.83502)
+#glmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL +AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID"
+glmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID"
+
 
 def.glm = glm(formula = glmodel,
              data = training,
@@ -260,7 +263,16 @@ cm
 # Detection Prevalence : 0.07822              
 # Balanced Accuracy : 0.59769              
 # 
-# 'Positive' Class : Y         
+# 'Positive' Class : Y    
+
+install.packages("pROC")
+library(pROC)
+
+test_auc = auc(testing$default, testing$probability)
+test_auc #Area under the curve: 0.803
+plot(roc(testing$default, testing$probability))
+
+
 
 #-------------------------------------------
 # Lasso & Ridge check
@@ -498,10 +510,15 @@ a = testing$default
 set.seed(42)
 
 
+#xmodel = "default ~. -ID"
+#xmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + EDUCATION + AMT_PC1 + AMT_PC2 + AMT_PC6 + AMT_PC5 + AMT_PC7 + AMT_PC4 + AMT_PC3 + PAY_PC2 + PAY_PC3 + MARRIAGE + SEX - ID"
+#xmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID"
+xmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID"
+
 #run cross validation - takes a long time
 tc = trainControl(method="cv", number=5, classProbs=TRUE)
 #takes 10mins to run
-rf.fit = train(default ~. -ID, data=training, method="rf", trControl=tc)
+rf.fit = train(form=as.formula(xmodel), data=training, method="rf", trControl=tc)
 rf.fit
 # Random Forest 
 # 
@@ -531,8 +548,13 @@ tuneRF(training[,c(-excludeID, -excludeTarget)], training$default, ntreeTry =200
 #    -if categorical=floor(sqrt(no of independent variables))
 # lower mtry means 1) less correlation between trees (good thing), 2) decreases strength of each tree. cannot predict accurately because of the limited variables (bad thing)
 
-rf_model = randomForest(training$default ~. -ID, data = training, mtry=12, importance=TRUE, xtest=testing[,c(-excludeID, -excludeTarget)], keep.forest=TRUE, ntree=1000)
-rf_model
+testing$SEX       = factor(testing$SEX, levels=levels(training$SEX))
+testing$EDUCATION = factor(testing$EDUCATION, levels=levels(training$EDUCATION))
+testing$MARRIAGE  = factor(testing$MARRIAGE, levels=levels(training$MARRIAGE))
+testing$default   = factor(testing$default, levels=levels(training$default))
+
+#rf_model = randomForest(as.formula(xmodel), data = training, mtry=12, importance=TRUE, xtest=testing[,c(-excludeID, -excludeTarget)], keep.forest=TRUE, ntree=1000)
+#rf_model
 # No. of variables tried at each split: 3 
 # OOB estimate of  error rate: 18.48%
 # Confusion matrix:
@@ -549,6 +571,8 @@ rf_model
 # N 11386  877  0.07151594
 # Y  2064 1845  0.52801228
 
+rf_model = randomForest(as.formula(xmodel), data = training, mtry=7, importance=TRUE, keep.forest=TRUE, ntree=1000)
+rf_model
 
 
 #model summary
@@ -620,6 +644,47 @@ test_auc = auc(testing$default, test_prob_rf[,2])
 test_auc #Area under the curve: 0.803
 plot(roc(testing$default, test_prob_rf[,2]))
 
+#------------------
+# write predictions to file
+#------------------
+
+ovalid = read.csv("AT3_credit_test_STUDENT.csv")
+
+# #------------------
+# # check data
+# #------------------
+
+str(ovalid)
+
+ovalid$EDUCATION = as.factor(ovalid$EDUCATION)
+ovalid$MARRIAGE = as.factor(ovalid$MARRIAGE)
+ovalid$SEX = as.factor(ovalid$SEX)
+
+nrow(ovalid)     #6899
+
+ovalid$SEX = as.character(ovalid$SEX)
+ovalid$SEX[ovalid$SEX=="cat"] = "Other"
+ovalid$SEX[ovalid$SEX=="dog"] = "Other"
+ovalid$SEX[ovalid$SEX=="dolphin"] = "Other"
+ovalid$SEX = as.factor(ovalid$SEX)
+
+
+validation_out = NULL 
+validation_out$ID = ovalid$ID
+validation_out$predict = predict(rf_model, ovalid, type="class")
+
+validation_out = as.data.frame(validation_out)
+validation_out$default = 0
+validation_out$default[validation_out$predict=="Y"] = 1
+validation_out$default = as.factor(validation_out$default)
+
+#rownames(validation_out) = c()
+
+output = validation_out[,c("ID","default")]
+
+write.csv(output, "AT3_DAM_IT_credit_sample_UPLOAD_RF.csv", row.names = FALSE)
+
+
 
 #----------------------------------------------
 #   Boosting (F1: 0.5853835, sensitivity/recall: 0.4833, precision/pos pred value: 0.7422)
@@ -655,6 +720,10 @@ testing[testing$default == "Y", "default_binary"] = 1
 set.seed(42)
 
 
+bmodel = "default_binary~. -ID"
+#bmodel = "default_binary ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID - default"
+
+
 #tuning
 fitControl = trainControl(## 10-fold CV
   method = "repeatedcv", #repeatedcv
@@ -662,7 +731,7 @@ fitControl = trainControl(## 10-fold CV
   ## repeated ten times
   repeats = 10)
 
-gbm_tune = train(default_binary~. -ID, data=training[, c(-excludeTarget)], 
+gbm_tune = train(as.formula(bmodel), data=training[, c(-excludeTarget)], 
                  method = "gbm", 
                  trControl = fitControl,
                  ## This last option is actually one
