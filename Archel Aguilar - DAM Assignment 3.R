@@ -589,31 +589,32 @@ test_predictions_rf = predict(rf_model, testing, type="class")
 rf_confusion = confusionMatrix(data = as.factor(test_predictions_rf), testing$default, positive="Y")
 
 
-rf_confusion$byClass["F1"] #0.5614414
+rf_confusion$byClass["F1"] #0.548433
 rf_confusion
-#               Reference
+# Reference
 # Prediction    N    Y
-#           N 4933  895
-#           Y  322  779
+# N 4891  904
+# Y  364  770
 # 
-# Accuracy : 0.8244               
-# 95% CI : (0.8152, 0.8333)     
-# No Information Rate : 0.7584               
-# P-Value [Acc > NIR] : < 0.00000000000000022
+# Accuracy : 0.817          
+# 95% CI : (0.8077, 0.826)
+# No Information Rate : 0.7584         
+# P-Value [Acc > NIR] : < 2.2e-16      
 # 
-# Kappa : 0.4574               
-# Mcnemar's Test P-Value : < 0.00000000000000022
+# Kappa : 0.439          
+# Mcnemar's Test P-Value : < 2.2e-16      
 # 
-# Sensitivity : 0.4654               
-# Specificity : 0.9387               
-# Pos Pred Value : 0.7075               
-# Neg Pred Value : 0.8464               
-# Prevalence : 0.2416               
-# Detection Rate : 0.1124               
-# Detection Prevalence : 0.1589               
-# Balanced Accuracy : 0.7020               
+# Sensitivity : 0.4600         
+# Specificity : 0.9307         
+# Pos Pred Value : 0.6790         
+# Neg Pred Value : 0.8440         
+# Prevalence : 0.2416         
+# Detection Rate : 0.1111         
+# Detection Prevalence : 0.1637         
+# Balanced Accuracy : 0.6954         
 # 
-# 'Positive' Class : Y     
+# 'Positive' Class : Y    
+
 
 #quantitative measure of variable importance
 importance(rf_model)
@@ -641,7 +642,7 @@ install.packages("pROC")
 library(pROC)
 
 test_auc = auc(testing$default, test_prob_rf[,2])
-test_auc #Area under the curve: 0.803
+test_auc #Area under the curve: 0.7881
 plot(roc(testing$default, test_prob_rf[,2]))
 
 #------------------
@@ -719,9 +720,8 @@ testing[testing$default == "Y", "default_binary"] = 1
 
 set.seed(42)
 
-
-bmodel = "default_binary~. -ID"
-#bmodel = "default_binary ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID - default"
+#bmodel = "default_binary~. -ID"
+bmodel = "default_binary ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID - default"
 
 
 #tuning
@@ -731,7 +731,7 @@ fitControl = trainControl(## 10-fold CV
   ## repeated ten times
   repeats = 10)
 
-gbm_tune = train(as.formula(bmodel), data=training[, c(-excludeTarget)], 
+gbm_tune = train(as.formula(bmodel), data=training, 
                  method = "gbm", 
                  trControl = fitControl,
                  ## This last option is actually one
@@ -751,11 +751,11 @@ gbm_depth = 3 #maximum nodes per tree
 gbm_n.min = 10 #minimum number of observations in the trees terminal, important effect on overfitting
 gbm_shrinkage=0.1 #learning rate
 cores_num = 1 #number of cores
-gbm_cv.folds=5 #number of cross-validation folds to perform
-num_trees = 150 #20000 is best
+gbm_cv.folds=0 #number of cross-validation folds to perform (can be zero if you have tuned it already)
+num_trees = 150 #150 is best
 
 # fit initial model
-gbm_fit = gbm(default_binary ~. -ID, data = training[, c(-excludeTarget)],
+gbm_fit = gbm(as.formula(bmodel), data = training,
               distribution='bernoulli', 
               n.trees=num_trees, #the number of GBM interaction
               interaction.depth= gbm_depth,
@@ -771,11 +771,10 @@ summary(gbm_fit)
 
 
 ###How many trees should we use?
-best.iter = gbm.perf(gbm_fit, method = "cv")
-
+#best.iter = gbm.perf(gbm_fit, method = "cv")
 #test_prob_rf = predict(rf_model, testing, type="prob")
 
-testing$probability = predict(gbm_fit, testing, n.trees = best.iter, type = "response")
+testing$probability = predict(gbm_fit, testing, n.trees = num_trees, type = "response")
 #probability of Y
 
 # # Modify the probability threshold to see if you can get a better accuracy
@@ -786,48 +785,45 @@ testing$prediction = as.factor(testing$prediction)
 
 
 #predictions for test set
-
 boost_confusion = confusionMatrix(testing$prediction, testing$default, positive="Y")
-
 
 boost_confusion$byClass["F1"] #0.5251608
 boost_confusion
 
-# Reference
 # Prediction    N    Y
-# N 4980  980
-# Y  275  694
+# N 4960  967
+# Y  295  707
 # 
-# Accuracy : 0.8189          
-# 95% CI : (0.8096, 0.8279)
+# Accuracy : 0.8179          
+# 95% CI : (0.8086, 0.8269)
 # No Information Rate : 0.7584          
 # P-Value [Acc > NIR] : < 2.2e-16       
 # 
-# Kappa : 0.4229          
+# Kappa : 0.4242          
 # Mcnemar's Test P-Value : < 2.2e-16       
-# 
-# Sensitivity : 0.4146          
-# Specificity : 0.9477          
-# Pos Pred Value : 0.7162          
-# Neg Pred Value : 0.8356          
-# Prevalence : 0.2416          
-# Detection Rate : 0.1002          
-# Detection Prevalence : 0.1398          
-# Balanced Accuracy : 0.6811          
-# 
-# 'Positive' Class : Y       
+#                                           
+#             Sensitivity : 0.4223          
+#             Specificity : 0.9439          
+#          Pos Pred Value : 0.7056          
+#          Neg Pred Value : 0.8368          
+#              Prevalence : 0.2416          
+#          Detection Rate : 0.1020          
+#    Detection Prevalence : 0.1446          
+#       Balanced Accuracy : 0.6831          
+#                                           
+#        'Positive' Class : Y    
 
 #plot roc curve
 test_auc = auc(testing$default, testing$probability)
-test_auc #Area under the curve: 0.8152
+test_auc #Area under the curve: 0.8034
 plot(roc(testing$default, testing$probability))
 
 #show partial dependencies
 plot(gbm_fit, i="PAY_PC1")
-plot(gbm_fit, i="AGE")
-plot(gbm_fit, i="LIMIT_BAL")
-plot(gbm_fit, i="AMT_PC2")
-plot(gbm_fit, i="EDUCATION")
+plot(gbm_fit, i="AGE:LIMIT_BAL")
+plot(gbm_fit, i="AGE:EDUCATION")
+plot(gbm_fit, i="AMT_PC1")
+#plot(gbm_fit, i="EDUCATION")
 
 #----------------------------------------------
 #   Predict on validation file
@@ -880,25 +876,22 @@ ggplot(data.frame(ovalid$default), aes(x=ovalid$default)) + geom_bar() + xlab("D
 # # write predictions to file
 # #------------------
 
+
 validation_out = NULL 
 validation_out$ID = ovalid$ID
-validation_out$prob = predict(gbm_fit, ovalid, n.trees = best.iter, type = "response")
-#validation_out$default = as.character(validation_out$default)
+validation_out$prob = predict(gbm_fit, ovalid, n.trees = num_trees, type = "response")
 validation_out$default = 0
 
 validation_out = as.data.frame(validation_out)
 
-#validation_out$default = as.character(validation_out$default)
 validation_out[validation_out$prob >= 0.5, "default"] = 1
 validation_out$default = as.factor(validation_out$default)
-#validation_out = as.data.frame(validation_out)
-
 
 rownames(validation_out) = c()
 
 output = validation_out[,c("ID","default")]
 
-write.csv(output, "AT3_DAM_IT_credit_sample_UPLOAD.csv", row.names = FALSE)
+write.csv(output, "AT3_DAM_IT_Boost_0602.csv", row.names = FALSE)
 
 #---------------------- END ---------------------------
 
