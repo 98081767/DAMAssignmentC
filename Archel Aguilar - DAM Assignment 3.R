@@ -1009,6 +1009,30 @@ nb_confusion = confusionMatrix(testing$prediction, testing$default, positive="Y"
 nb_confusion$byClass["F1"] #0.4415584
 nb_confusion
 
+# Reference
+# Prediction    N    Y
+# N 1829  229
+# Y 3426 1445
+# 
+# Accuracy : 0.4725             
+# 95% CI : (0.4607, 0.4843)   
+# No Information Rate : 0.7584             
+# P-Value [Acc > NIR] : 1                  
+# 
+# Kappa : 0.128              
+# Mcnemar's Test P-Value : <0.0000000000000002
+# 
+# Sensitivity : 0.8632             
+# Specificity : 0.3480             
+# Pos Pred Value : 0.2967             
+# Neg Pred Value : 0.8887             
+# Prevalence : 0.2416             
+# Detection Rate : 0.2085             
+# Detection Prevalence : 0.7030             
+# Balanced Accuracy : 0.6056             
+# 
+# 'Positive' Class : Y      
+
 #---------------GET ROC Curve
 test_auc = auc(testing$default, nb.prob[,2])
 test_auc #Area under the curve: 0.7259
