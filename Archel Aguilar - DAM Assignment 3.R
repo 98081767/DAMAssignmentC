@@ -966,6 +966,55 @@ output = validation_out[,c("ID","default")]
 
 write.csv(output, "AT3_DAM_IT_Boost_0602.csv", row.names = FALSE)
 
+
+###########################
+# Naive Bayes classification
+###########################
+
+install.packages("e1071")
+library(e1071)
+
+#reset variables
+training = resetTraining
+#remove ID and Target from model
+
+excludeID = which(colnames(training)=="ID")
+excludeTarget = which(colnames(training)=="default")
+
+x = model.matrix(~ ., training[, c(-excludeID, -excludeTarget)])
+y = training$default
+
+testing = resetTesting
+#remove ID and Target from model
+z = model.matrix(~ ., testing[, c(-excludeID, -excludeTarget)])
+a = testing$default
+
+set.seed(42)
+
+
+nmodel = "default ~. -ID" 
+#nmodel = "default ~ PAY_PC1 + AGE + LIMIT_BAL + EDUCATION + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID"
+
+nbfit=naiveBayes(as.formula(nmodel), data=training)
+
+testing$prediction = predict(nbfit, testing)
+testing$probability = predict(nbfit, testing, type="raw")
+
+nb.prob = as.matrix(testing$probability)
+
+
+#predictions for test set
+nb_confusion = confusionMatrix(testing$prediction, testing$default, positive="Y")
+
+nb_confusion$byClass["F1"] #0.4415584
+nb_confusion
+
+#---------------GET ROC Curve
+test_auc = auc(testing$default, nb.prob[,2])
+test_auc #Area under the curve: 0.7259
+plot(roc(testing$default, nb.prob[,2]))
+
+
 #---------------------- END ---------------------------
 
 
