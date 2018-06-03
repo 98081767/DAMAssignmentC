@@ -162,21 +162,26 @@ prop.table(table(otrain$MARRIAGE))
 #remove age
 #otrain = within(otrain, rm("AGE"))
 
-otrain$SEX = as.character(otrain$SEX)
-otrain$SEX[otrain$SEX=="cat"] = "Other"
-otrain$SEX[otrain$SEX=="dog"] = "Other"
-otrain$SEX[otrain$SEX=="dolphin"] = "Other"
-#write.csv(otrain, "test.csv")
-otrain$SEX = as.factor(otrain$SEX)
-#otrain = droplevels(otrain)
-
 #group education (1= university or higher, 2=highschool, 3=Other)
 #otrain$EDU_ADJ[otrain$EDUCATION==1 | otrain$EDUCATION==2] = 1
 #otrain$EDU_ADJ[otrain$EDUCATION==3] = 2
 #otrain$EDU_ADJ[otrain$EDUCATION==0 | otrain$EDUCATION==4 | otrain$EDUCATION==5 | otrain$EDUCATION==6] = 3
 #otrain$EDU_ADJ = as.factor(otrain$EDU_ADJ)
 
+#clean outliers
+otrain$SEX = as.character(otrain$SEX)
+otrain$SEX[otrain$SEX=="cat"] = "Other"
+otrain$SEX[otrain$SEX=="dog"] = "Other"
+otrain$SEX[otrain$SEX=="dolphin"] = "Other"
+otrain = subset(otrain, SEX != "Other")
+otrain$SEX = as.factor(otrain$SEX)
+levels(otrain$SEX)
 
+otrain = subset(otrain, AGE < 125)
+otrain = subset(otrain, LIMIT_BAL > 0)
+str(otrain)
+
+nrow(otrain)
 
 
 #---------------------------------------------
@@ -500,29 +505,29 @@ rpart_confusion
 
 rpart_confusion$byClass["F1"] #0.5262017
 
-#               Reference
+# Reference
 # Prediction    N    Y
-#           N 4890  946
-#           Y  365  728
+# N 4813  822
+# Y  420  844
 # 
-# Accuracy : 0.8108               
-# 95% CI : (0.8014, 0.82)       
-# No Information Rate : 0.7584               
+# Accuracy : 0.82                 
+# 95% CI : (0.8107, 0.829)      
+# No Information Rate : 0.7585               
 # P-Value [Acc > NIR] : < 0.00000000000000022
 # 
-# Kappa : 0.4144               
+# Kappa : 0.4645               
 # Mcnemar's Test P-Value : < 0.00000000000000022
 # 
-# Sensitivity : 0.4349               
-# Specificity : 0.9305               
-# Pos Pred Value : 0.6661               
-# Neg Pred Value : 0.8379               
-# Prevalence : 0.2416               
-# Detection Rate : 0.1051               
-# Detection Prevalence : 0.1577               
-# Balanced Accuracy : 0.6827               
+# Sensitivity : 0.5066               
+# Specificity : 0.9197               
+# Pos Pred Value : 0.6677               
+# Neg Pred Value : 0.8541               
+# Prevalence : 0.2415               
+# Detection Rate : 0.1223               
+# Detection Prevalence : 0.1832               
+# Balanced Accuracy : 0.7132               
 # 
-# 'Positive' Class : Y         
+# 'Positive' Class : Y          
 
 #------------get ROC score
 
@@ -530,7 +535,7 @@ install.packages("pROC")
 library(pROC)
 
 test_auc = auc(testing$default, as.matrix(rpart_predict.prob)[,1])
-test_auc #Area under the curve: 0.7421
+test_auc #Area under the curve: 0.7762
 plot(roc(testing$default,  as.matrix(rpart_predict.prob)[,1]))
 
 
@@ -559,12 +564,51 @@ a = testing$default
 set.seed(42)
 
 
-#xmodel = "default ~. -ID" #(Kaggle: 0.69462)
+xmodel = "default ~. -ID" #(Kaggle: 0.69462)
 #xmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + EDUCATION + AMT_PC1 + AMT_PC2 + AMT_PC6 + AMT_PC5 + AMT_PC7 + AMT_PC4 + AMT_PC3 + PAY_PC2 + PAY_PC3 + MARRIAGE + SEX - ID"
 #xmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID"
 #xmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDU_ADJ + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID"
-xmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID" #(Kaggle: 0.68825)
+#xmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID" #(Kaggle: 0.68825)
 #xmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2  + AMT_PC3 + AMT_PC4 + AMT_PC5 + AMT_PC6 + PAY_PC2 + PAY_PC3 - ID"
+
+
+#-----------Tune RF------------
+#filterFeatures(trainTask, method = "rf.importance", abs = 6)
+install.packages("mlr")
+library(mlr)
+install.packages("FSelector")
+library(FSelector)
+
+#find tuning parameters
+getParamSet("classif.randomForest")
+
+trainTask = makeClassifTask(data = training,target = "default", positive="Y")
+trainTask = normalizeFeatures(trainTask,method = "standardize")
+trainTask = dropFeatures(task = trainTask,features = c("ID"))
+
+#get important features
+im_feat <- generateFilterValuesData(trainTask, method = c("information.gain","chi.squared"))
+plotFilterValues(im_feat,n.show = 20)
+
+
+
+rf_learner = makeLearner("classif.randomForest", predict.type = "response", par.vals = list(ntree = 200, mtry = 3))
+rf_learner$par.vals <- list(importance = TRUE)
+
+#grid search
+rf_param = makeParamSet(
+  makeIntegerParam("ntree",lower = 50, upper = 200),
+  makeIntegerParam("mtry", lower = 3, upper = 12),
+  makeIntegerParam("nodesize", lower = 10, upper = 50)
+)
+
+rf_control = makeTuneControlRandom(maxit = 50L)
+
+rf_cv = makeResampleDesc("CV",iters = 3L)
+
+
+rf_tune = tuneParams(learner=rf_learner, resampling = rf_cv , task = trainTask, par.set = rf_param, control=rf_control, measures = acc)
+
 
 #run cross validation - takes a long time
 tc = trainControl(method="cv", number=5, classProbs=TRUE)
@@ -622,7 +666,7 @@ testing$default   = factor(testing$default, levels=levels(training$default))
 # N 11386  877  0.07151594
 # Y  2064 1845  0.52801228
 
-rf_model = randomForest(as.formula(xmodel), data = training, mtry=7, importance=TRUE, keep.forest=TRUE, ntree=1000)
+rf_model = randomForest(as.formula(xmodel), data = training, mtry=12, importance=TRUE, keep.forest=TRUE, ntree=1000)
 rf_model
 
 
@@ -640,31 +684,32 @@ test_predictions_rf = predict(rf_model, testing, type="class")
 rf_confusion = confusionMatrix(data = as.factor(test_predictions_rf), testing$default, positive="Y")
 
 
-rf_confusion$byClass["F1"] #0.548433
+rf_confusion$byClass["F1"] #0.5788169
 rf_confusion
 # Reference
 # Prediction    N    Y
-# N 4891  904
-# Y  364  770
+# N 4893  849
+# Y  340  817
 # 
-# Accuracy : 0.817          
-# 95% CI : (0.8077, 0.826)
-# No Information Rate : 0.7584         
-# P-Value [Acc > NIR] : < 2.2e-16      
+# Accuracy : 0.8277               
+# 95% CI : (0.8185, 0.8365)     
+# No Information Rate : 0.7585               
+# P-Value [Acc > NIR] : < 0.00000000000000022
 # 
-# Kappa : 0.439          
-# Mcnemar's Test P-Value : < 2.2e-16      
-# 
-# Sensitivity : 0.4600         
-# Specificity : 0.9307         
-# Pos Pred Value : 0.6790         
-# Neg Pred Value : 0.8440         
-# Prevalence : 0.2416         
-# Detection Rate : 0.1111         
-# Detection Prevalence : 0.1637         
-# Balanced Accuracy : 0.6954         
-# 
-# 'Positive' Class : Y    
+# Kappa : 0.4749               
+# Mcnemar's Test P-Value : < 0.00000000000000022
+#                                                
+#             Sensitivity : 0.4904               
+#             Specificity : 0.9350               
+#          Pos Pred Value : 0.7061               
+#          Neg Pred Value : 0.8521               
+#              Prevalence : 0.2415               
+#          Detection Rate : 0.1184               
+#    Detection Prevalence : 0.1677               
+#       Balanced Accuracy : 0.7127               
+#                                                
+#      'Positive' Class : Y                    
+                               
 
 
 #quantitative measure of variable importance
@@ -693,7 +738,7 @@ install.packages("pROC")
 library(pROC)
 
 test_auc = auc(testing$default, test_prob_rf[,2])
-test_auc #Area under the curve: 0.7881
+test_auc #Area under the curve: 0.8112
 plot(roc(testing$default, test_prob_rf[,2]))
 
 #------------------
@@ -771,8 +816,8 @@ testing[testing$default == "Y", "default_binary"] = 1
 
 set.seed(42)
 
-#bmodel = "default_binary~. -ID - default" #Kaggle: 0.67126
-bmodel = "default_binary ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID - default"
+bmodel = "default_binary~. -ID - default" #Kaggle: 0.67126
+#bmodel = "default_binary ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2 + AMT_PC3 + AMT_PC4 + AMT_PC5 + AMT_PC6 + PAY_PC2 + PAY_PC3 - ID - default"
 
 
 #tuning
@@ -838,31 +883,32 @@ testing$prediction = as.factor(testing$prediction)
 #predictions for test set
 boost_confusion = confusionMatrix(testing$prediction, testing$default, positive="Y")
 
-boost_confusion$byClass["F1"] #0.5251608
+boost_confusion$byClass["F1"] #0.5381466
 boost_confusion
 
+# Reference
 # Prediction    N    Y
-# N 4960  967
-# Y  295  707
+# N 4935  943
+# Y  298  723
 # 
-# Accuracy : 0.8179          
-# 95% CI : (0.8086, 0.8269)
-# No Information Rate : 0.7584          
-# P-Value [Acc > NIR] : < 2.2e-16       
+# Accuracy : 0.8201               
+# 95% CI : (0.8108, 0.8291)     
+# No Information Rate : 0.7585               
+# P-Value [Acc > NIR] : < 0.00000000000000022
 # 
-# Kappa : 0.4242          
-# Mcnemar's Test P-Value : < 2.2e-16       
-#                                           
-#             Sensitivity : 0.4223          
-#             Specificity : 0.9439          
-#          Pos Pred Value : 0.7056          
-#          Neg Pred Value : 0.8368          
-#              Prevalence : 0.2416          
-#          Detection Rate : 0.1020          
-#    Detection Prevalence : 0.1446          
-#       Balanced Accuracy : 0.6831          
-#                                           
-#        'Positive' Class : Y    
+# Kappa : 0.4343               
+# Mcnemar's Test P-Value : < 0.00000000000000022
+# 
+# Sensitivity : 0.4340               
+# Specificity : 0.9431               
+# Pos Pred Value : 0.7081               
+# Neg Pred Value : 0.8396               
+# Prevalence : 0.2415               
+# Detection Rate : 0.1048               
+# Detection Prevalence : 0.1480               
+# Balanced Accuracy : 0.6885               
+# 
+# 'Positive' Class : Y     
 
 #plot roc curve
 test_auc = auc(testing$default, testing$probability)
@@ -996,9 +1042,20 @@ nbfit=naiveBayes(as.formula(nmodel), data=training)
 
 testing$prediction = predict(nbfit, testing)
 testing$probability = predict(nbfit, testing, type="raw")
-
 nb.prob = as.matrix(testing$probability)
 
+
+#--------------------------------
+# nb_grid = data.frame(fL=c(0,0.5,1.0), usekernel = TRUE, adjust=c(0,0.5,1.0))
+# 
+# #tuned nb
+# nb_tuned_model = train(x,y,'nb', tuneGrid=nb_grid, trControl=trainControl(method='cv',number=10))
+# 
+# testing$prediction = predict(nb_tuned_model, testing)
+# testing$probability = predict(nb_tuned_model, testing, type="prob")
+# 
+# nb.prob = as.matrix(testing$probability)
+#--------------------------------
 
 #predictions for test set
 nb_confusion = confusionMatrix(testing$prediction, testing$default, positive="Y")
