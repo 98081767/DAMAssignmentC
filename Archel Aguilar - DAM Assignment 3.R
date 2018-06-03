@@ -412,6 +412,7 @@ cv.fit_ridge$lambda.1se
 coef(cv.fit_ridge, s = cv.fit_ridge$lambda.min)
 
 prediction_ridge = predict(cv.fit_ridge$glmnet.fit, newx=z, type="class", s = cv.fit_ridge$lambda.min)
+prediction_ridge.prob = predict(cv.fit_ridge$glmnet.fit, newx=z, type="response", s = cv.fit_ridge$lambda.min)
 
 
 #set Target=1 as the focus for confusion matrix
@@ -441,7 +442,17 @@ ridge_confusion
 # 
 # 'Positive' Class : Y 
 
-ridge_confusion$byClass["F1"] #0.3143782 
+ridge_confusion$byClass["F1"] #0.3207459 
+
+#------------get ROC score
+
+install.packages("pROC")
+library(pROC)
+
+test_auc = auc(testing$default, as.matrix(prediction_ridge.prob)[,1])
+test_auc #Area under the curve: 0.7374
+plot(roc(testing$default,  as.matrix(prediction_ridge.prob)[,1]))
+
 
 #-------------------------------------------
 # Tree classification
@@ -485,6 +496,7 @@ prp(rpart_model, digits = -3)
 
 #prediction
 rpart_predict = predict(rpart_model,testing,type="class")
+rpart_predict.prob = predict(rpart_model,testing,type="prob")
 
 rpart_confusion = confusionMatrix(data = as.factor(rpart_predict), testing$default, positive="Y")
 rpart_confusion
@@ -515,6 +527,15 @@ rpart_confusion$byClass["F1"] #0.5262017
 # 
 # 'Positive' Class : Y         
 
+#------------get ROC score
+
+install.packages("pROC")
+library(pROC)
+
+test_auc = auc(testing$default, as.matrix(rpart_predict.prob)[,1])
+test_auc #Area under the curve: 0.7421
+plot(roc(testing$default,  as.matrix(rpart_predict.prob)[,1]))
+
 
 ###########################
 # Random Forests (F1: 0.5614414, sensitivity/recall: 0.4654, precision/pos pred value: 0.7075)
@@ -541,12 +562,12 @@ a = testing$default
 set.seed(42)
 
 
-#xmodel = "default ~. -ID" (Kaggle: 0.69462)
+#xmodel = "default ~. -ID" #(Kaggle: 0.69462)
 #xmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + EDUCATION + AMT_PC1 + AMT_PC2 + AMT_PC6 + AMT_PC5 + AMT_PC7 + AMT_PC4 + AMT_PC3 + PAY_PC2 + PAY_PC3 + MARRIAGE + SEX - ID"
 #xmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID"
 #xmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDU_ADJ + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID"
-#xmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID" #(Kaggle: 0.68825)
-xmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2  + AMT_PC3 + AMT_PC4 + AMT_PC5 + AMT_PC6 + PAY_PC2 + PAY_PC3 - ID"
+xmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID" #(Kaggle: 0.68825)
+#xmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2  + AMT_PC3 + AMT_PC4 + AMT_PC5 + AMT_PC6 + PAY_PC2 + PAY_PC3 - ID"
 
 #run cross validation - takes a long time
 tc = trainControl(method="cv", number=5, classProbs=TRUE)
@@ -604,7 +625,7 @@ testing$default   = factor(testing$default, levels=levels(training$default))
 # N 11386  877  0.07151594
 # Y  2064 1845  0.52801228
 
-rf_model = randomForest(as.formula(xmodel), data = training, mtry=9, importance=TRUE, keep.forest=TRUE, ntree=1000)
+rf_model = randomForest(as.formula(xmodel), data = training, mtry=7, importance=TRUE, keep.forest=TRUE, ntree=1000)
 rf_model
 
 
@@ -753,7 +774,7 @@ testing[testing$default == "Y", "default_binary"] = 1
 
 set.seed(42)
 
-#bmodel = "default_binary~. -ID"
+#bmodel = "default_binary~. -ID - default" #Kaggle: 0.67126
 bmodel = "default_binary ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID - default"
 
 
