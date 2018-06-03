@@ -1098,6 +1098,44 @@ test_auc #Area under the curve: 0.7259
 plot(roc(testing$default, nb.prob[,2]))
 
 
+# #------------------
+# # write predictions to file
+# #------------------
+ovalid = read.csv("AT3_credit_test_STUDENT.csv")
+
+# #------------------
+# # check data
+# #------------------
+
+str(ovalid)
+nrow(ovalid)     #6899
+
+# nbfit=naiveBayes(as.formula(nmodel), data=training)
+# 
+# testing$prediction = predict(nbfit, testing)
+# testing$probability = predict(nbfit, testing, type="raw")
+# nb.prob = as.matrix(testing$probability)
+
+
+
+validation_out = NULL 
+validation_out$ID = ovalid$ID
+validation_prob = predict(nbfit, ovalid, type="raw")
+validation_prob = as.matrix(validation_prob)
+
+validation_out$prob = validation_prob[,2]
+validation_out$default = 0
+
+validation_out = as.data.frame(validation_out)
+
+validation_out[validation_out$prob >= 0.5, "default"] = 1
+validation_out$default = as.factor(validation_out$default)
+
+rownames(validation_out) = c()
+
+output = validation_out[,c("ID","default")]
+
+write.csv(output, "AT3_DAM_IT_Naive_0603.csv", row.names = FALSE)
 
 
 
