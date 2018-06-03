@@ -215,7 +215,7 @@ nrow(training[training$default=="N",]) #12263 - number of non defaults in traini
 #include all except for identifier (ID)
 #glmodel = "default ~. -ID" #all variables (AIC: 15805, F1: 0.660561, sensitivity/recall: 0.54640, precision/pos pred value: 0.83502)
 #glmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL +AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID"
-glmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID"
+glmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID" 
 
 
 def.glm = glm(formula = glmodel,
@@ -518,11 +518,12 @@ a = testing$default
 set.seed(42)
 
 
-#xmodel = "default ~. -ID"
+#xmodel = "default ~. -ID" (Kaggle: 0.69462)
 #xmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + EDUCATION + AMT_PC1 + AMT_PC2 + AMT_PC6 + AMT_PC5 + AMT_PC7 + AMT_PC4 + AMT_PC3 + PAY_PC2 + PAY_PC3 + MARRIAGE + SEX - ID"
 #xmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID"
 #xmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDU_ADJ + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID"
-xmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID"
+#xmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID" #(Kaggle: 0.68825)
+xmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2  + AMT_PC3 + AMT_PC4 + AMT_PC5 + AMT_PC6 + PAY_PC2 + PAY_PC3 - ID"
 
 #run cross validation - takes a long time
 tc = trainControl(method="cv", number=5, classProbs=TRUE)
@@ -580,7 +581,7 @@ testing$default   = factor(testing$default, levels=levels(training$default))
 # N 11386  877  0.07151594
 # Y  2064 1845  0.52801228
 
-rf_model = randomForest(as.formula(xmodel), data = training, mtry=7, importance=TRUE, keep.forest=TRUE, ntree=1000)
+rf_model = randomForest(as.formula(xmodel), data = training, mtry=9, importance=TRUE, keep.forest=TRUE, ntree=1000)
 rf_model
 
 
