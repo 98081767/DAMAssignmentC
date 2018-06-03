@@ -83,10 +83,14 @@ library(scales)
 library(reshape2)
 
 
-ggplot(data.frame(otrain$LIMIT_BAL), aes(x="Balance Limit", y=otrain$LIMIT_BAL)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + ylab("$")
-hist(otrain$LIMIT_BAL)
+ggplot(data.frame(otrain$LIMIT_BAL), aes(x="Credit Limit", y=otrain$LIMIT_BAL)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + ylab("$")
+hist(otrain$LIMIT_BAL, xlab="Credit Limit", main="Histogram of Credit Limit")
+ggplot(data.frame(otrain$LIMIT_BAL), aes(x=otrain$LIMIT_BAL)) + geom_bar() + xlab("Credit Limit")
+
+
 ggplot(data.frame(otrain$AGE), aes(x="Age", y=otrain$AGE)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ggplot(data.frame(otrain$AGE), aes(x=otrain$AGE)) + geom_bar() + xlab("Age")
+length(which(otrain$AGE>100))
 
 mean(otrain$AGE)
 
@@ -121,28 +125,33 @@ otrain$EDU_ADJ = as.factor(otrain$EDU_ADJ)
 
 
 ggplot(data.frame(otrain$MARRIAGE), aes(x=otrain$MARRIAGE)) + geom_bar() + xlab("Marriage")
-ggplot(data.frame(otrain$PAY_PC1), aes(x="Pay PC1", y=otrain$PAY_PC1)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggplot(data.frame(otrain$PAY_PC2), aes(x="Pay PC2", y=otrain$PAY_PC2)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggplot(data.frame(otrain$PAY_PC3), aes(x="Pay PC3", y=otrain$PAY_PC3)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggplot(data.frame(otrain$AMT_PC1), aes(x="Amt PC1", y=otrain$AMT_PC1)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggplot(data.frame(otrain$AMT_PC2), aes(x="Amt PC2", y=otrain$AMT_PC2)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggplot(data.frame(otrain$AMT_PC3), aes(x="Amt PC3", y=otrain$AMT_PC3)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggplot(data.frame(otrain$AMT_PC4), aes(x="Amt PC4", y=otrain$AMT_PC4)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggplot(data.frame(otrain$AMT_PC5), aes(x="Amt PC5", y=otrain$AMT_PC5)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggplot(data.frame(otrain$AMT_PC6), aes(x="Amt PC6", y=otrain$AMT_PC6)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggplot(data.frame(otrain$AMT_PC7), aes(x="Amt PC7", y=otrain$AMT_PC7)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(otrain$PAY_PC1), aes(x="Pay PC1", y=otrain$PAY_PC1)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + ylab("")
+ggplot(data.frame(otrain$PAY_PC2), aes(x="Pay PC2", y=otrain$PAY_PC2)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + ylab("")
+ggplot(data.frame(otrain$PAY_PC3), aes(x="Pay PC3", y=otrain$PAY_PC3)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + ylab("")
+ggplot(data.frame(otrain$AMT_PC1), aes(x="Amt PC1", y=otrain$AMT_PC1)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + ylab("")
+ggplot(data.frame(otrain$AMT_PC2), aes(x="Amt PC2", y=otrain$AMT_PC2)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + ylab("")
+ggplot(data.frame(otrain$AMT_PC3), aes(x="Amt PC3", y=otrain$AMT_PC3)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + ylab("")
+ggplot(data.frame(otrain$AMT_PC4), aes(x="Amt PC4", y=otrain$AMT_PC4)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + ylab("")
+ggplot(data.frame(otrain$AMT_PC5), aes(x="Amt PC5", y=otrain$AMT_PC5)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + ylab("")
+ggplot(data.frame(otrain$AMT_PC6), aes(x="Amt PC6", y=otrain$AMT_PC6)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + ylab("")
+ggplot(data.frame(otrain$AMT_PC7), aes(x="Amt PC7", y=otrain$AMT_PC7)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + ylab("")
+
+
+hist(otrain$PAY_PC1, xlab="PAY_PC1", main="Histogram of PAY_PC1")
+hist(otrain$PAY_PC2, xlab="PAY_PC2", main="Histogram of PAY_PC2")
+hist(otrain$PAY_PC3, xlab="PAY_PC3", main="Histogram of PAY_PC3")
+
+hist(otrain$AMT_PC1, xlab="AMT_PC1", main="Histogram of AMT_PC1")
+hist(otrain$AMT_PC2, xlab="AMT_PC2", main="Histogram of AMT_PC2")
+hist(otrain$AMT_PC3, xlab="AMT_PC3", main="Histogram of AMT_PC3")
+hist(otrain$AMT_PC4, xlab="AMT_PC4", main="Histogram of AMT_PC4")
+hist(otrain$AMT_PC5, xlab="AMT_PC5", main="Histogram of AMT_PC5")
+hist(otrain$AMT_PC6, xlab="AMT_PC6", main="Histogram of AMT_PC6")
+hist(otrain$AMT_PC7, xlab="AMT_PC7", main="Histogram of AMT_PC7")
+
+
 ggplot(data.frame(otrain$default), aes(x=otrain$default)) + geom_bar() + xlab("Default")
 
-hist(otrain$PAY_PC1) 
-hist(otrain$PAY_PC2)
-hist(otrain$PAY_PC3)
-hist(otrain$AMT_PC1)
-hist(otrain$AMT_PC2)
-hist(otrain$AMT_PC3)
-hist(otrain$AMT_PC4)
-hist(otrain$AMT_PC5)
-hist(otrain$AMT_PC6)
-hist(otrain$AMT_PC7)
 
 ggplot(data.frame(otrain$PAY_PC1, otrain$default), aes(x=otrain$default, y=otrain$PAY_PC1)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
 #negative coeffients have impact on defaults - defaulters tend to have more -ve (pay dulies)
@@ -167,6 +176,10 @@ nrow(otrain[otrain$default=="Y",]) / nrow(otrain) #0.24 proportion of defaults
 
 install.packages("sjstats")
 library(sjstats)
+
+prop.table(table(otrain$SEX))
+prop.table(table(otrain$EDUCATION))
+prop.table(table(otrain$MARRIAGE))
 
 
 #---------------------------------------------
@@ -327,6 +340,7 @@ cv.lasso_coef
 
 
 prediction_lasso = predict(cv.fit_lasso$glmnet.fit, newx =z, type = "class", s = cv.fit_lasso$lambda.min)
+prediction_lasso.prob = predict(cv.fit_lasso$glmnet.fit, newx =z, type = "response", s = cv.fit_lasso$lambda.min)
 
 lasso_confusion = confusionMatrix(data = as.factor(prediction_lasso), a, positive="Y")
 lasso_confusion
@@ -355,6 +369,15 @@ lasso_confusion
 # 'Positive' Class : Y         
 
 lasso_confusion$byClass["F1"] #0.3316629
+
+#------------get ROC score
+
+install.packages("pROC")
+library(pROC)
+
+test_auc = auc(testing$default, as.matrix(prediction_lasso.prob)[,1])
+test_auc #Area under the curve: 0.7374
+plot(roc(testing$default,  as.matrix(prediction_lasso.prob)[,1]))
 
 ###########################
 # Ridge Regression (F1: 0.3143782, sensitivity/recall: 0.20311, precision/pos pred value: 0.69530)
@@ -852,10 +875,12 @@ ovalid$MARRIAGE = as.factor(ovalid$MARRIAGE)
 ovalid$SEX = as.factor(ovalid$SEX)
 
 nrow(ovalid)     #6899
-ggplot(data.frame(ovalid$LIMIT_BAL), aes(x="Balance Limit", y=ovalid$LIMIT_BAL)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + ylab("$")
+ggplot(data.frame(ovalid$LIMIT_BAL), aes(x="Credit Limit", y=ovalid$LIMIT_BAL)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + ylab("$")
+hist(ovalid$LIMIT_BAL, xlab="Credit Limit", main="Histogram of Credit Limit")
 ggplot(data.frame(ovalid$AGE), aes(x="Age", y=ovalid$AGE)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ggplot(data.frame(ovalid$AGE), aes(x=ovalid$AGE)) + geom_bar() + xlab("Age")
 #some outliers in age - over 120 years of age
+
 ggplot(data.frame(ovalid$SEX), aes(x=ovalid$SEX)) + geom_bar() + xlab("Sex")
 #one record of cat, dog, dolphin - need to change to NA
 
@@ -880,6 +905,23 @@ ggplot(data.frame(ovalid$AMT_PC5), aes(x="Amt PC5", y=ovalid$AMT_PC5)) + geom_bo
 ggplot(data.frame(ovalid$AMT_PC6), aes(x="Amt PC6", y=ovalid$AMT_PC6)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ggplot(data.frame(ovalid$AMT_PC7), aes(x="Amt PC7", y=ovalid$AMT_PC7)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ggplot(data.frame(ovalid$default), aes(x=ovalid$default)) + geom_bar() + xlab("Default")
+
+hist(ovalid$PAY_PC1, xlab="PAY_PC1", main="Histogram of PAY_PC1")
+hist(ovalid$PAY_PC2, xlab="PAY_PC2", main="Histogram of PAY_PC2")
+hist(ovalid$PAY_PC3, xlab="PAY_PC3", main="Histogram of PAY_PC3")
+
+hist(ovalid$AMT_PC1, xlab="AMT_PC1", main="Histogram of AMT_PC1")
+hist(ovalid$AMT_PC2, xlab="AMT_PC2", main="Histogram of AMT_PC2")
+hist(ovalid$AMT_PC3, xlab="AMT_PC3", main="Histogram of AMT_PC3")
+hist(ovalid$AMT_PC4, xlab="AMT_PC4", main="Histogram of AMT_PC4")
+hist(ovalid$AMT_PC5, xlab="AMT_PC5", main="Histogram of AMT_PC5")
+hist(ovalid$AMT_PC6, xlab="AMT_PC6", main="Histogram of AMT_PC6")
+hist(ovalid$AMT_PC7, xlab="AMT_PC7", main="Histogram of AMT_PC7")
+
+
+prop.table(table(ovalid$SEX))
+prop.table(table(ovalid$EDUCATION))
+prop.table(table(ovalid$MARRIAGE))
 
 
 # #------------------
