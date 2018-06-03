@@ -57,12 +57,14 @@ otrain$SEX = as.factor(otrain$SEX)
 
 
 
-
-
-
 #---------------------------------------------
 # Analyse data
 #---------------------------------------------
+
+install.packages("ggplot2")
+library(ggplot2)
+library(scales)
+library(reshape2)
 
 summary(otrain)
 
@@ -75,13 +77,6 @@ contrasts(otrain$MARRIAGE)
 nrow(otrain)     #23,101
 
 options(scipen=20)
-#boxplot(otrain$LIMIT_BAL)
-
-install.packages("ggplot2")
-library(ggplot2)
-library(scales)
-library(reshape2)
-
 
 ggplot(data.frame(otrain$LIMIT_BAL), aes(x="Credit Limit", y=otrain$LIMIT_BAL)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + ylab("$")
 hist(otrain$LIMIT_BAL, xlab="Credit Limit", main="Histogram of Credit Limit")
@@ -91,37 +86,12 @@ ggplot(data.frame(otrain$LIMIT_BAL), aes(x=otrain$LIMIT_BAL)) + geom_bar() + xla
 ggplot(data.frame(otrain$AGE), aes(x="Age", y=otrain$AGE)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ggplot(data.frame(otrain$AGE), aes(x=otrain$AGE)) + geom_bar() + xlab("Age")
 length(which(otrain$AGE>100))
-
-mean(otrain$AGE)
-
-
-#convert age to deciles
-#quantile(otrain$AGE, prob = seq(0, 1, length = 11), type = 5)
-#otrain$AGEDEC = cut_number(otrain$AGE, n=11, closed="left")
-#ggplot(data.frame(otrain$AGEDEC), aes(x=otrain$AGEDEC)) + geom_bar() + xlab("Age Decile")
-#remove age
-#otrain = within(otrain, rm("AGE"))
-
-
 #some outliers in age - over 120 years of age
-ggplot(data.frame(otrain$SEX), aes(x=otrain$SEX)) + geom_bar() + xlab("Sex")
 #one record of cat, dog, dolphin - need to change to NA
-
-otrain$SEX = as.character(otrain$SEX)
-otrain$SEX[otrain$SEX=="cat"] = "Other"
-otrain$SEX[otrain$SEX=="dog"] = "Other"
-otrain$SEX[otrain$SEX=="dolphin"] = "Other"
-#write.csv(otrain, "test.csv")
-otrain$SEX = as.factor(otrain$SEX)
-#otrain = droplevels(otrain)
-
+ggplot(data.frame(otrain$SEX), aes(x=otrain$SEX)) + geom_bar() + xlab("Sex")
 ggplot(data.frame(otrain$EDUCATION), aes(x=otrain$EDUCATION)) + geom_bar() + xlab("Education")
 
-#group education (1= university or higher, 2=highschool, 3=Other)
-otrain$EDU_ADJ[otrain$EDUCATION==1 | otrain$EDUCATION==2] = 1
-otrain$EDU_ADJ[otrain$EDUCATION==3] = 2
-otrain$EDU_ADJ[otrain$EDUCATION==0 | otrain$EDUCATION==4 | otrain$EDUCATION==5 | otrain$EDUCATION==6] = 3
-otrain$EDU_ADJ = as.factor(otrain$EDU_ADJ)
+mean(otrain$AGE)
 
 
 ggplot(data.frame(otrain$MARRIAGE), aes(x=otrain$MARRIAGE)) + geom_bar() + xlab("Marriage")
@@ -180,6 +150,33 @@ library(sjstats)
 prop.table(table(otrain$SEX))
 prop.table(table(otrain$EDUCATION))
 prop.table(table(otrain$MARRIAGE))
+
+
+#-----------------------------------------------
+# Clean data
+#-----------------------------------------------
+#convert age to deciles
+#quantile(otrain$AGE, prob = seq(0, 1, length = 11), type = 5)
+#otrain$AGEDEC = cut_number(otrain$AGE, n=11, closed="left")
+#ggplot(data.frame(otrain$AGEDEC), aes(x=otrain$AGEDEC)) + geom_bar() + xlab("Age Decile")
+#remove age
+#otrain = within(otrain, rm("AGE"))
+
+otrain$SEX = as.character(otrain$SEX)
+otrain$SEX[otrain$SEX=="cat"] = "Other"
+otrain$SEX[otrain$SEX=="dog"] = "Other"
+otrain$SEX[otrain$SEX=="dolphin"] = "Other"
+#write.csv(otrain, "test.csv")
+otrain$SEX = as.factor(otrain$SEX)
+#otrain = droplevels(otrain)
+
+#group education (1= university or higher, 2=highschool, 3=Other)
+#otrain$EDU_ADJ[otrain$EDUCATION==1 | otrain$EDUCATION==2] = 1
+#otrain$EDU_ADJ[otrain$EDUCATION==3] = 2
+#otrain$EDU_ADJ[otrain$EDUCATION==0 | otrain$EDUCATION==4 | otrain$EDUCATION==5 | otrain$EDUCATION==6] = 3
+#otrain$EDU_ADJ = as.factor(otrain$EDU_ADJ)
+
+
 
 
 #---------------------------------------------
@@ -1037,6 +1034,9 @@ nb_confusion
 test_auc = auc(testing$default, nb.prob[,2])
 test_auc #Area under the curve: 0.7259
 plot(roc(testing$default, nb.prob[,2]))
+
+
+
 
 
 #---------------------- END ---------------------------
