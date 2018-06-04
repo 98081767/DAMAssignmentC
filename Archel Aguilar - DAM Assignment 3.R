@@ -158,27 +158,6 @@ prop.table(table(otrain$MARRIAGE))
 #-----------------------------------------------
 # Clean data
 #-----------------------------------------------
-#convert age to deciles
-quantile(otrain$AGE, prob = seq(0, 1, length = 10), type = 5)
-otrain$AGEDEC = cut_interval(otrain$AGE, n=10, closed="left")
-ggplot(data.frame(otrain$AGEDEC), aes(x=otrain$AGEDEC)) + geom_bar() + xlab("Age Decile")
-#remove age
-#otrain = within(otrain, rm("AGE"))
-
-#convert limit balance to deciles
-quantile(otrain$LIMIT_BAL, prob = seq(0, 1, length = 10), type = 5)
-otrain$CREDIT_DEC = cut_interval(otrain$LIMIT_BAL, n=10, closed="left")
-ggplot(data.frame(otrain$CREDIT_DEC), aes(x=otrain$CREDIT_DEC)) + geom_bar() + xlab("Credit Limt Decile")
-
-
-
-#group education (1= university or higher, 2=highschool, 3=Other)
-otrain$EDU_ADJ[otrain$EDUCATION==1 | otrain$EDUCATION==2] = 1
-otrain$EDU_ADJ[otrain$EDUCATION==3] = 2
-otrain$EDU_ADJ[otrain$EDUCATION==0 | otrain$EDUCATION==4 | otrain$EDUCATION==5 | otrain$EDUCATION==6] = 3
-otrain$EDU_ADJ = as.factor(otrain$EDU_ADJ)
-ggplot(data.frame(otrain$EDU_ADJ), aes(x=otrain$EDU_ADJ)) + geom_bar() + xlab("Education")
-
 #clean outliers
 otrain$SEX = as.character(otrain$SEX)
 otrain$SEX[otrain$SEX=="cat"] = "Other"
@@ -190,6 +169,29 @@ levels(otrain$SEX)
 
 otrain = subset(otrain, AGE < 125)
 otrain = subset(otrain, LIMIT_BAL > 0)
+
+
+#convert age to deciles
+quantile(otrain$AGE, prob = seq(0, 1, length = 10), type = 5)
+otrain$AGEDEC = cut_interval(otrain$AGE, length=10, closed="left")
+ggplot(data.frame(otrain$AGEDEC), aes(x=otrain$AGEDEC)) + geom_bar() + xlab("Age Decile")
+#remove age
+#otrain = within(otrain, rm("AGE"))
+
+#convert limit balance to deciles
+quantile(otrain$LIMIT_BAL, prob = seq(0, 1, length = 10), type = 5)
+otrain$CREDIT_DEC = cut_interval(otrain$LIMIT_BAL, length=50000, closed="left", dig.lab=10)
+ggplot(data.frame(otrain$CREDIT_DEC), aes(x=otrain$CREDIT_DEC)) + geom_bar() + xlab("Credit Limit Decile")
+
+#group education (1= university or higher, 2=highschool, 3=Other)
+otrain$EDU_ADJ[otrain$EDUCATION==1 | otrain$EDUCATION==2] = 1
+otrain$EDU_ADJ[otrain$EDUCATION==3] = 2
+otrain$EDU_ADJ[otrain$EDUCATION==4] = 3
+otrain$EDU_ADJ[otrain$EDUCATION==0 | otrain$EDUCATION==5 | otrain$EDUCATION==6] = 4
+otrain$EDU_ADJ = as.factor(otrain$EDU_ADJ)
+ggplot(data.frame(otrain$EDU_ADJ), aes(x=otrain$EDU_ADJ)) + geom_bar() + xlab("Education")
+
+
 str(otrain)
 
 nrow(otrain)
@@ -201,30 +203,34 @@ ovalid = read.csv("AT3_credit_test_STUDENT.csv")
 str(ovalid)
 nrow(ovalid)     #6899
 
-
 ovalid$EDUCATION = as.factor(ovalid$EDUCATION)
 ovalid$MARRIAGE = as.factor(ovalid$MARRIAGE)
 ovalid$SEX = as.factor(ovalid$SEX)
 
+ovalid = subset(ovalid, AGE < 125)
+ovalid = subset(ovalid, LIMIT_BAL > 0)
+
 
 #convert age to deciles
 quantile(ovalid$AGE, prob = seq(0, 1, length = 10), type = 5)
-ovalid$AGEDEC = cut_interval(ovalid$AGE, n=10, closed="left")
+ovalid$AGEDEC = cut_interval(ovalid$AGE, length=10, closed="left")
 ggplot(data.frame(ovalid$AGEDEC), aes(x=ovalid$AGEDEC)) + geom_bar() + xlab("Age Decile")
 #remove age
 #ovalid = within(ovalid, rm("AGE"))
 
 #convert limit balance to deciles
 quantile(ovalid$LIMIT_BAL, prob = seq(0, 1, length = 10), type = 5)
-ovalid$CREDIT_DEC = cut_interval(ovalid$LIMIT_BAL, n=10, closed="left")
-ggplot(data.frame(ovalid$CREDIT_DEC), aes(x=ovalid$CREDIT_DEC)) + geom_bar() + xlab("Credit Limt Decile")
+ovalid$CREDIT_DEC = cut_interval(ovalid$LIMIT_BAL, length=50000, closed="left", dig.lab=10)
+ggplot(data.frame(ovalid$CREDIT_DEC), aes(x=ovalid$CREDIT_DEC)) + geom_bar() + xlab("Credit Limit Decile")
 
 
 #group education (1= university or higher, 2=highschool, 3=Other)
 ovalid$EDU_ADJ[ovalid$EDUCATION==1 | ovalid$EDUCATION==2] = 1
 ovalid$EDU_ADJ[ovalid$EDUCATION==3] = 2
-ovalid$EDU_ADJ[ovalid$EDUCATION==0 | ovalid$EDUCATION==4 | ovalid$EDUCATION==5 | ovalid$EDUCATION==6] = 3
+ovalid$EDU_ADJ[ovalid$EDUCATION==4] = 3
+ovalid$EDU_ADJ[ovalid$EDUCATION==0 | ovalid$EDUCATION==5 | ovalid$EDUCATION==6] = 4
 ovalid$EDU_ADJ = as.factor(ovalid$EDU_ADJ)
+ggplot(data.frame(ovalid$EDU_ADJ), aes(x=ovalid$EDU_ADJ)) + geom_bar() + xlab("Education")
 
 
 #clean outliers
@@ -236,18 +242,18 @@ ovalid = subset(ovalid, SEX != "Other")
 ovalid$SEX = as.factor(ovalid$SEX)
 levels(ovalid$SEX)
 
-ovalid = subset(ovalid, AGE < 125)
-ovalid = subset(ovalid, LIMIT_BAL > 0)
 str(ovalid)
 
 nrow(ovalid) #6899
 
 
-ovalid$SEX        = factor(ovalid$SEX, levels=levels(otrain$SEX))
-ovalid$EDUCATION  = factor(ovalid$EDUCATION, levels=levels(otrain$EDUCATION))
-ovalid$MARRIAGE   = factor(ovalid$MARRIAGE, levels=levels(otrain$MARRIAGE))
-ovalid$AGEDEC     = factor(ovalid$AGEDEC, levels=levels(otrain$AGEDEC))
-ovalid$EDU_ADJ    = factor(ovalid$EDU_ADJ, levels=levels(otrain$EDU_ADJ))
+#equalise factors between training and validation
+ovalid$SEX           = factor(ovalid$SEX, levels=levels(otrain$SEX))
+ovalid$EDUCATION     = factor(ovalid$EDUCATION, levels=levels(otrain$EDUCATION))
+ovalid$MARRIAGE      = factor(ovalid$MARRIAGE, levels=levels(otrain$MARRIAGE))
+ovalid$AGEDEC        = factor(ovalid$AGEDEC, levels=levels(otrain$AGEDEC))
+ovalid$EDU_ADJ       = factor(ovalid$EDU_ADJ, levels=levels(otrain$EDU_ADJ))
+ovalid$CREDIT_DEC    = factor(ovalid$CREDIT_DEC, levels=levels(otrain$CREDIT_DEC))
 
 
 reset_ovalid = ovalid
@@ -262,9 +268,13 @@ findCorrelation(correlationMatrix, cutoff=0.5)
 
 excludeID = which(colnames(otrain)=="ID")
 excludeTarget = which(colnames(otrain)=="default")
+excludeAge = which(colnames(otrain)=="AGE")
+excludeLimit = which(colnames(otrain)=="LIMIT_BAL")
+excludeEdu = which(colnames(otrain)=="EDUCATION")
+
 
 rfe_control = rfeControl(functions=rfFuncs, method="cv", number=10)
-rfe_results = rfe(otrain[,c(-excludeID, -excludeTarget)], otrain$default, sizes=c(1:17), rfeControl=rfe_control)
+rfe_results = rfe(otrain[,c(-excludeID, -excludeTarget, -excludeAge, -excludeLimit, -excludeEdu)], otrain$default, sizes=c(1:17), rfeControl=rfe_control)
 rfe_results
 plot(rfe_results)
 rfe_results$variables
