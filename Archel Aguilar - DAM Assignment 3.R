@@ -43,6 +43,9 @@ rm(list=ls())
 install.packages("ISLR")
 library(ISLR)
 
+install.packages('caret', dependencies = TRUE)
+library(caret)
+
 setwd("C:/Users/arche/Documents/UTS/R-References/R-references-Git/DAMAssignmentC")
 #setwd("C:/Personal/UTS/R-References/R-references-Git/DAMAssignment2B")
 
@@ -156,17 +159,18 @@ prop.table(table(otrain$MARRIAGE))
 # Clean data
 #-----------------------------------------------
 #convert age to deciles
-#quantile(otrain$AGE, prob = seq(0, 1, length = 11), type = 5)
-#otrain$AGEDEC = cut_number(otrain$AGE, n=11, closed="left")
-#ggplot(data.frame(otrain$AGEDEC), aes(x=otrain$AGEDEC)) + geom_bar() + xlab("Age Decile")
+quantile(otrain$AGE, prob = seq(0, 1, length = 11), type = 5)
+otrain$AGEDEC = cut_number(otrain$AGE, n=11, closed="left")
+ggplot(data.frame(otrain$AGEDEC), aes(x=otrain$AGEDEC)) + geom_bar() + xlab("Age Decile")
 #remove age
 #otrain = within(otrain, rm("AGE"))
 
 #group education (1= university or higher, 2=highschool, 3=Other)
-#otrain$EDU_ADJ[otrain$EDUCATION==1 | otrain$EDUCATION==2] = 1
-#otrain$EDU_ADJ[otrain$EDUCATION==3] = 2
-#otrain$EDU_ADJ[otrain$EDUCATION==0 | otrain$EDUCATION==4 | otrain$EDUCATION==5 | otrain$EDUCATION==6] = 3
-#otrain$EDU_ADJ = as.factor(otrain$EDU_ADJ)
+otrain$EDU_ADJ[otrain$EDUCATION==1 | otrain$EDUCATION==2] = 1
+otrain$EDU_ADJ[otrain$EDUCATION==3] = 2
+otrain$EDU_ADJ[otrain$EDUCATION==0 | otrain$EDUCATION==4 | otrain$EDUCATION==5 | otrain$EDUCATION==6] = 3
+otrain$EDU_ADJ = as.factor(otrain$EDU_ADJ)
+ggplot(data.frame(otrain$EDU_ADJ), aes(x=otrain$EDU_ADJ)) + geom_bar() + xlab("Education")
 
 #clean outliers
 otrain$SEX = as.character(otrain$SEX)
@@ -184,12 +188,79 @@ str(otrain)
 nrow(otrain)
 
 
+#--------clean validation file as well
+ovalid = read.csv("AT3_credit_test_STUDENT.csv")
+
+str(ovalid)
+nrow(ovalid)     #6899
+
+
+ovalid$EDUCATION = as.factor(ovalid$EDUCATION)
+ovalid$MARRIAGE = as.factor(ovalid$MARRIAGE)
+ovalid$SEX = as.factor(ovalid$SEX)
+
+
+#convert age to deciles
+quantile(ovalid$AGE, prob = seq(0, 1, length = 11), type = 5)
+ovalid$AGEDEC = cut_number(ovalid$AGE, n=11, closed="left")
+ggplot(data.frame(ovalid$AGEDEC), aes(x=ovalid$AGEDEC)) + geom_bar() + xlab("Age Decile")
+#remove age
+#ovalid = within(ovalid, rm("AGE"))
+
+#group education (1= university or higher, 2=highschool, 3=Other)
+ovalid$EDU_ADJ[ovalid$EDUCATION==1 | ovalid$EDUCATION==2] = 1
+ovalid$EDU_ADJ[ovalid$EDUCATION==3] = 2
+ovalid$EDU_ADJ[ovalid$EDUCATION==0 | ovalid$EDUCATION==4 | ovalid$EDUCATION==5 | ovalid$EDUCATION==6] = 3
+ovalid$EDU_ADJ = as.factor(ovalid$EDU_ADJ)
+
+
+#clean outliers
+ovalid$SEX = as.character(ovalid$SEX)
+ovalid$SEX[ovalid$SEX=="cat"] = "Other"
+ovalid$SEX[ovalid$SEX=="dog"] = "Other"
+ovalid$SEX[ovalid$SEX=="dolphin"] = "Other"
+ovalid = subset(ovalid, SEX != "Other")
+ovalid$SEX = as.factor(ovalid$SEX)
+levels(ovalid$SEX)
+
+ovalid = subset(ovalid, AGE < 125)
+ovalid = subset(ovalid, LIMIT_BAL > 0)
+str(ovalid)
+
+nrow(ovalid) #6899
+
+
+ovalid$SEX        = factor(ovalid$SEX, levels=levels(otrain$SEX))
+ovalid$EDUCATION  = factor(ovalid$EDUCATION, levels=levels(otrain$EDUCATION))
+ovalid$MARRIAGE   = factor(ovalid$MARRIAGE, levels=levels(otrain$MARRIAGE))
+ovalid$AGEDEC     = factor(ovalid$AGEDEC, levels=levels(otrain$AGEDEC))
+ovalid$EDU_ADJ    = factor(ovalid$EDU_ADJ, levels=levels(otrain$EDU_ADJ))
+
+
+reset_ovalid = ovalid
+
+
+
+#---------------FEATURE SELECTION
+#check redundant columns
+correlationMatrix = cor(otrain[,c("LIMIT_BAL","AGE","PAY_PC1","PAY_PC2","PAY_PC3","AMT_PC1","AMT_PC2","AMT_PC3","AMT_PC4","AMT_PC5","AMT_PC6","AMT_PC7")])
+findCorrelation(correlationMatrix, cutoff=0.5)
+#no highly correlated items
+
+excludeID = which(colnames(otrain)=="ID")
+excludeTarget = which(colnames(otrain)=="default")
+
+rfe_control = rfeControl(functions=rfFuncs, method="cv", number=10)
+rfe_results = rfe(otrain[,c(-excludeID, -excludeTarget)], otrain$default, sizes=c(1:17), rfeControl=rfe_control)
+rfe_results
+plot(rfe_results)
+rfe_results$variables
+
+
 #---------------------------------------------
 # Create train and test data
 #---------------------------------------------
 
-install.packages('caret', dependencies = TRUE)
-library(caret)
 
 set.seed(12345) #42
 
@@ -230,7 +301,11 @@ nrow(training[training$default=="N",]) #12263 - number of non defaults in traini
 #include all except for identifier (ID)
 #glmodel = "default ~. -ID" #all variables (AIC: 15805, F1: 0.660561, sensitivity/recall: 0.54640, precision/pos pred value: 0.83502)
 #glmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL +AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID"
-glmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID" 
+#glmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID" 
+#glmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID" #AIC 15733 -
+#glmodel = "default ~ PAY_PC1 + AGE + LIMIT_BAL + EDUCATION + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID" #AIC 15768 - after feature selection - top 7 variables
+glmodel = "default ~ PAY_PC1 + AGEDEC:LIMIT_BAL + EDU_ADJ + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID" #AIC 15525 - 
+#glmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + EDUCATION + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID"  #AIC 15834
 
 
 def.glm = glm(formula = glmodel,
@@ -294,6 +369,34 @@ library(pROC)
 test_auc = auc(testing$default, testing$probability)
 test_auc #Area under the curve: 0.803
 plot(roc(testing$default, testing$probability))
+
+# #------------------
+# # write predictions to file
+# #------------------
+
+ovalid = reset_ovalid
+
+validation_out = NULL 
+validation_out$ID = ovalid$ID
+validation_prob = predict(def.glm, ovalid, type="response")
+validation_prob = as.matrix(validation_prob)
+
+validation_out$prob = validation_prob[,1]
+validation_out$default = 0
+
+validation_out = as.data.frame(validation_out)
+
+validation_out[!is.na(validation_out$prob) & validation_out$prob >= 0.5, "default"] = 1
+validation_out$default = as.factor(validation_out$default)
+
+rownames(validation_out) = c()
+
+output = validation_out[,c("ID","default")]
+
+write.csv(output, "AT3_DAM_IT_Logistic_0603.csv", row.names = FALSE)
+
+
+
 
 
 
