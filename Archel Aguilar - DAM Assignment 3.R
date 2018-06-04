@@ -179,11 +179,11 @@ ggplot(data.frame(otrain$AGEDEC), aes(x=otrain$AGEDEC)) + geom_bar() + xlab("Age
 #otrain = within(otrain, rm("AGE"))
 
 #convert limit balance to deciles
-quantile(otrain$LIMIT_BAL, prob = seq(0, 1, length = 10), type = 5)
-otrain$CREDIT_DEC = cut_interval(otrain$LIMIT_BAL, length=50000, closed="left", dig.lab=10)
-ggplot(data.frame(otrain$CREDIT_DEC), aes(x=otrain$CREDIT_DEC)) + geom_bar() + xlab("Credit Limit Decile")
+# quantile(otrain$LIMIT_BAL, prob = seq(0, 1, length = 10), type = 5)
+# otrain$CREDIT_DEC = cut_interval(otrain$LIMIT_BAL, length=50000, closed="left", dig.lab=10)
+# ggplot(data.frame(otrain$CREDIT_DEC), aes(x=otrain$CREDIT_DEC)) + geom_bar() + xlab("Credit Limit Decile")
 
-#group education (1= university or higher, 2=highschool, 3=Other)
+#group education (1= university or higher, 2=highschool, 3=Others, 4=unkowwn)
 otrain$EDU_ADJ[otrain$EDUCATION==1 | otrain$EDUCATION==2] = 1
 otrain$EDU_ADJ[otrain$EDUCATION==3] = 2
 otrain$EDU_ADJ[otrain$EDUCATION==4] = 3
@@ -219,9 +219,9 @@ ggplot(data.frame(ovalid$AGEDEC), aes(x=ovalid$AGEDEC)) + geom_bar() + xlab("Age
 #ovalid = within(ovalid, rm("AGE"))
 
 #convert limit balance to deciles
-quantile(ovalid$LIMIT_BAL, prob = seq(0, 1, length = 10), type = 5)
-ovalid$CREDIT_DEC = cut_interval(ovalid$LIMIT_BAL, length=50000, closed="left", dig.lab=10)
-ggplot(data.frame(ovalid$CREDIT_DEC), aes(x=ovalid$CREDIT_DEC)) + geom_bar() + xlab("Credit Limit Decile")
+# quantile(ovalid$LIMIT_BAL, prob = seq(0, 1, length = 10), type = 5)
+# ovalid$CREDIT_DEC = cut_interval(ovalid$LIMIT_BAL, length=50000, closed="left", dig.lab=10)
+# ggplot(data.frame(ovalid$CREDIT_DEC), aes(x=ovalid$CREDIT_DEC)) + geom_bar() + xlab("Credit Limit Decile")
 
 
 #group education (1= university or higher, 2=highschool, 3=Other)
@@ -274,7 +274,7 @@ excludeEdu = which(colnames(otrain)=="EDUCATION")
 
 
 rfe_control = rfeControl(functions=rfFuncs, method="cv", number=10)
-rfe_results = rfe(otrain[,c(-excludeID, -excludeTarget, -excludeAge, -excludeLimit, -excludeEdu)], otrain$default, sizes=c(1:17), rfeControl=rfe_control)
+rfe_results = rfe(otrain[,c(-excludeID, -excludeTarget, -excludeAge, -excludeEdu)], otrain$default, sizes=c(1:17), rfeControl=rfe_control)
 rfe_results
 plot(rfe_results)
 rfe_results$variables
@@ -327,8 +327,11 @@ nrow(training[training$default=="N",]) #12263 - number of non defaults in traini
 #glmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID" 
 #glmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID" #AIC 15733 -
 #glmodel = "default ~ PAY_PC1 + AGE + LIMIT_BAL + EDUCATION + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID" #AIC 15768 - after feature selection - top 7 variables
-glmodel = "default ~ PAY_PC1 + AGEDEC:LIMIT_BAL + EDU_ADJ + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID" #AIC 15525 - 
+glmodel = "default ~ PAY_PC1 + AGEDEC:LIMIT_BAL + EDU_ADJ + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID" #AIC 15525 - Best model
 #glmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + EDUCATION + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID"  #AIC 15834
+
+#glmodel = "default ~ PAY_PC1 + AGEDEC:CREDIT_DEC + EDU_ADJ + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID" #AIC 15402
+#glmodel = "default ~ PAY_PC1 + AGEDEC + CREDIT_DEC + EDU_ADJ + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID" #AIC 15419
 
 
 def.glm = glm(formula = glmodel,
