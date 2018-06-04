@@ -159,11 +159,18 @@ prop.table(table(otrain$MARRIAGE))
 # Clean data
 #-----------------------------------------------
 #convert age to deciles
-quantile(otrain$AGE, prob = seq(0, 1, length = 11), type = 5)
-otrain$AGEDEC = cut_number(otrain$AGE, n=11, closed="left")
+quantile(otrain$AGE, prob = seq(0, 1, length = 10), type = 5)
+otrain$AGEDEC = cut_interval(otrain$AGE, n=10, closed="left")
 ggplot(data.frame(otrain$AGEDEC), aes(x=otrain$AGEDEC)) + geom_bar() + xlab("Age Decile")
 #remove age
 #otrain = within(otrain, rm("AGE"))
+
+#convert limit balance to deciles
+quantile(otrain$LIMIT_BAL, prob = seq(0, 1, length = 10), type = 5)
+otrain$CREDIT_DEC = cut_interval(otrain$LIMIT_BAL, n=10, closed="left")
+ggplot(data.frame(otrain$CREDIT_DEC), aes(x=otrain$CREDIT_DEC)) + geom_bar() + xlab("Credit Limt Decile")
+
+
 
 #group education (1= university or higher, 2=highschool, 3=Other)
 otrain$EDU_ADJ[otrain$EDUCATION==1 | otrain$EDUCATION==2] = 1
@@ -201,11 +208,17 @@ ovalid$SEX = as.factor(ovalid$SEX)
 
 
 #convert age to deciles
-quantile(ovalid$AGE, prob = seq(0, 1, length = 11), type = 5)
-ovalid$AGEDEC = cut_number(ovalid$AGE, n=11, closed="left")
+quantile(ovalid$AGE, prob = seq(0, 1, length = 10), type = 5)
+ovalid$AGEDEC = cut_interval(ovalid$AGE, n=10, closed="left")
 ggplot(data.frame(ovalid$AGEDEC), aes(x=ovalid$AGEDEC)) + geom_bar() + xlab("Age Decile")
 #remove age
 #ovalid = within(ovalid, rm("AGE"))
+
+#convert limit balance to deciles
+quantile(ovalid$LIMIT_BAL, prob = seq(0, 1, length = 10), type = 5)
+ovalid$CREDIT_DEC = cut_interval(ovalid$LIMIT_BAL, n=10, closed="left")
+ggplot(data.frame(ovalid$CREDIT_DEC), aes(x=ovalid$CREDIT_DEC)) + geom_bar() + xlab("Credit Limt Decile")
+
 
 #group education (1= university or higher, 2=highschool, 3=Other)
 ovalid$EDU_ADJ[ovalid$EDUCATION==1 | ovalid$EDUCATION==2] = 1
