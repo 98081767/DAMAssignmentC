@@ -1,4 +1,4 @@
-#-----------------------------------------
+#---------------------------------------------------------------------------------------------------
 # DAM-I.T.
 #
 # Archel Aguilar (980817867)
@@ -35,7 +35,7 @@
 #	-default: 					        Default payment next month (1=yes, 0=no)
 
 #
-#-----------------------------------------
+#---------------------------------------------------------------------------------------------------
 
 #clear variables
 rm(list=ls())
@@ -53,6 +53,8 @@ getwd()
 
 otrain = read.csv("AT3_credit_train_STUDENT.csv")
 str(otrain)
+ovalid = read.csv("AT3_credit_test_STUDENT.csv")
+str(ovalid)
 
 otrain$EDUCATION = as.factor(otrain$EDUCATION)
 otrain$MARRIAGE = as.factor(otrain$MARRIAGE)
@@ -60,9 +62,9 @@ otrain$SEX = as.factor(otrain$SEX)
 
 
 
-#---------------------------------------------
-# Analyse data
-#---------------------------------------------
+#---------------------------------------------------------------------------------------------------
+#                               ANALYSE TRAINING DATA
+#---------------------------------------------------------------------------------------------------
 
 install.packages("ggplot2")
 library(ggplot2)
@@ -155,9 +157,64 @@ prop.table(table(otrain$EDUCATION))
 prop.table(table(otrain$MARRIAGE))
 
 
-#-----------------------------------------------
-# Clean data
-#-----------------------------------------------
+
+#---------------------------------------------------------------------------------------------------
+#           ANALYSE VALIDATION DATA
+#---------------------------------------------------------------------------------------------------
+
+str(ovalid)
+
+ovalid$EDUCATION = as.factor(ovalid$EDUCATION)
+ovalid$MARRIAGE = as.factor(ovalid$MARRIAGE)
+ovalid$SEX = as.factor(ovalid$SEX)
+
+nrow(ovalid)     #6899
+ggplot(data.frame(ovalid$LIMIT_BAL), aes(x="Credit Limit", y=ovalid$LIMIT_BAL)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + ylab("$")
+hist(ovalid$LIMIT_BAL, xlab="Credit Limit", main="Histogram of Credit Limit")
+ggplot(data.frame(ovalid$AGE), aes(x="Age", y=ovalid$AGE)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(ovalid$AGE), aes(x=ovalid$AGE)) + geom_bar() + xlab("Age")
+#some outliers in age - over 120 years of age
+
+ggplot(data.frame(ovalid$SEX), aes(x=ovalid$SEX)) + geom_bar() + xlab("Sex")
+#one record of cat, dog, dolphin - need to change to NA
+
+
+ggplot(data.frame(ovalid$EDUCATION), aes(x=ovalid$EDUCATION)) + geom_bar() + xlab("Education")
+ggplot(data.frame(ovalid$MARRIAGE), aes(x=ovalid$MARRIAGE)) + geom_bar() + xlab("Marriage")
+ggplot(data.frame(ovalid$PAY_PC1), aes(x="Pay PC1", y=ovalid$PAY_PC1)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(ovalid$PAY_PC2), aes(x="Pay PC2", y=ovalid$PAY_PC2)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(ovalid$PAY_PC3), aes(x="Pay PC3", y=ovalid$PAY_PC3)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(ovalid$AMT_PC1), aes(x="Amt PC1", y=ovalid$AMT_PC1)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(ovalid$AMT_PC2), aes(x="Amt PC2", y=ovalid$AMT_PC2)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(ovalid$AMT_PC3), aes(x="Amt PC3", y=ovalid$AMT_PC3)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(ovalid$AMT_PC4), aes(x="Amt PC4", y=ovalid$AMT_PC4)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(ovalid$AMT_PC5), aes(x="Amt PC5", y=ovalid$AMT_PC5)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(ovalid$AMT_PC6), aes(x="Amt PC6", y=ovalid$AMT_PC6)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(ovalid$AMT_PC7), aes(x="Amt PC7", y=ovalid$AMT_PC7)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+ggplot(data.frame(ovalid$default), aes(x=ovalid$default)) + geom_bar() + xlab("Default")
+
+hist(ovalid$PAY_PC1, xlab="PAY_PC1", main="Histogram of PAY_PC1")
+hist(ovalid$PAY_PC2, xlab="PAY_PC2", main="Histogram of PAY_PC2")
+hist(ovalid$PAY_PC3, xlab="PAY_PC3", main="Histogram of PAY_PC3")
+
+hist(ovalid$AMT_PC1, xlab="AMT_PC1", main="Histogram of AMT_PC1")
+hist(ovalid$AMT_PC2, xlab="AMT_PC2", main="Histogram of AMT_PC2")
+hist(ovalid$AMT_PC3, xlab="AMT_PC3", main="Histogram of AMT_PC3")
+hist(ovalid$AMT_PC4, xlab="AMT_PC4", main="Histogram of AMT_PC4")
+hist(ovalid$AMT_PC5, xlab="AMT_PC5", main="Histogram of AMT_PC5")
+hist(ovalid$AMT_PC6, xlab="AMT_PC6", main="Histogram of AMT_PC6")
+hist(ovalid$AMT_PC7, xlab="AMT_PC7", main="Histogram of AMT_PC7")
+
+
+prop.table(table(ovalid$SEX))
+prop.table(table(ovalid$EDUCATION))
+prop.table(table(ovalid$MARRIAGE))
+
+
+
+#---------------------------------------------------------------------------------------------------
+#                  CLEAN DATA
+#---------------------------------------------------------------------------------------------------
 #clean outliers
 otrain$SEX = as.character(otrain$SEX)
 otrain$SEX[otrain$SEX=="cat"] = "Other"
@@ -183,29 +240,31 @@ ggplot(data.frame(otrain$AGEDEC), aes(x=otrain$AGEDEC)) + geom_bar() + xlab("Age
 # otrain$CREDIT_DEC = cut_interval(otrain$LIMIT_BAL, length=50000, closed="left", dig.lab=10)
 # ggplot(data.frame(otrain$CREDIT_DEC), aes(x=otrain$CREDIT_DEC)) + geom_bar() + xlab("Credit Limit Decile")
 
-#group education (1= university or higher, 2=highschool, 3=Others, 4=unkowwn)
-otrain$EDU_ADJ[otrain$EDUCATION==1 | otrain$EDUCATION==2] = 1
-otrain$EDU_ADJ[otrain$EDUCATION==3] = 2
-otrain$EDU_ADJ[otrain$EDUCATION==4] = 3
-otrain$EDU_ADJ[otrain$EDUCATION==0 | otrain$EDUCATION==5 | otrain$EDUCATION==6] = 4
-otrain$EDU_ADJ = as.factor(otrain$EDU_ADJ)
-ggplot(data.frame(otrain$EDU_ADJ), aes(x=otrain$EDU_ADJ)) + geom_bar() + xlab("Education")
+#fix education
+otrain$EDUCATION[otrain$EDUCATION==0 | otrain$EDUCATION==5 | otrain$EDUCATION==6] = 5
+ggplot(data.frame(otrain$EDUCATION), aes(x=otrain$EDUCATION)) + geom_bar() + xlab("Education")
+otrain$EDUCATION = as.integer(otrain$EDUCATION)
+otrain$EDUCATION = as.factor(otrain$EDUCATION)
+levels(otrain$EDUCATION)
 
 
 str(otrain)
 
 nrow(otrain)
 
+#---------------------------------------------------------------------------------------------------
+#                   clean validation file as well
+#---------------------------------------------------------------------------------------------------
 
-#--------clean validation file as well
-ovalid = read.csv("AT3_credit_test_STUDENT.csv")
-
-str(ovalid)
-nrow(ovalid)     #6899
-
-ovalid$EDUCATION = as.factor(ovalid$EDUCATION)
-ovalid$MARRIAGE = as.factor(ovalid$MARRIAGE)
+#clean outliers
+ovalid$SEX = as.character(ovalid$SEX)
+ovalid$SEX[ovalid$SEX=="cat"] = "Other"
+ovalid$SEX[ovalid$SEX=="dog"] = "Other"
+ovalid$SEX[ovalid$SEX=="dolphin"] = "Other"
+ovalid = subset(ovalid, SEX != "Other")
 ovalid$SEX = as.factor(ovalid$SEX)
+levels(ovalid$SEX)
+
 
 ovalid = subset(ovalid, AGE < 125)
 ovalid = subset(ovalid, LIMIT_BAL > 0)
@@ -224,26 +283,14 @@ ggplot(data.frame(ovalid$AGEDEC), aes(x=ovalid$AGEDEC)) + geom_bar() + xlab("Age
 # ggplot(data.frame(ovalid$CREDIT_DEC), aes(x=ovalid$CREDIT_DEC)) + geom_bar() + xlab("Credit Limit Decile")
 
 
-#group education (1= university or higher, 2=highschool, 3=Other)
-ovalid$EDU_ADJ[ovalid$EDUCATION==1 | ovalid$EDUCATION==2] = 1
-ovalid$EDU_ADJ[ovalid$EDUCATION==3] = 2
-ovalid$EDU_ADJ[ovalid$EDUCATION==4] = 3
-ovalid$EDU_ADJ[ovalid$EDUCATION==0 | ovalid$EDUCATION==5 | ovalid$EDUCATION==6] = 4
-ovalid$EDU_ADJ = as.factor(ovalid$EDU_ADJ)
-ggplot(data.frame(ovalid$EDU_ADJ), aes(x=ovalid$EDU_ADJ)) + geom_bar() + xlab("Education")
-
-
-#clean outliers
-ovalid$SEX = as.character(ovalid$SEX)
-ovalid$SEX[ovalid$SEX=="cat"] = "Other"
-ovalid$SEX[ovalid$SEX=="dog"] = "Other"
-ovalid$SEX[ovalid$SEX=="dolphin"] = "Other"
-ovalid = subset(ovalid, SEX != "Other")
-ovalid$SEX = as.factor(ovalid$SEX)
-levels(ovalid$SEX)
+#fix education
+ovalid$EDUCATION[ovalid$EDUCATION==0 | ovalid$EDUCATION==5 | ovalid$EDUCATION==6] = 5
+ggplot(data.frame(ovalid$EDUCATION), aes(x=ovalid$EDUCATION)) + geom_bar() + xlab("Education")
+ovalid$EDUCATION = as.integer(ovalid$EDUCATION)
+ovalid$EDUCATION = as.factor(ovalid$EDUCATION)
+levels(ovalid$EDUCATION)
 
 str(ovalid)
-
 nrow(ovalid) #6899
 
 
@@ -252,38 +299,70 @@ ovalid$SEX           = factor(ovalid$SEX, levels=levels(otrain$SEX))
 ovalid$EDUCATION     = factor(ovalid$EDUCATION, levels=levels(otrain$EDUCATION))
 ovalid$MARRIAGE      = factor(ovalid$MARRIAGE, levels=levels(otrain$MARRIAGE))
 ovalid$AGEDEC        = factor(ovalid$AGEDEC, levels=levels(otrain$AGEDEC))
-ovalid$EDU_ADJ       = factor(ovalid$EDU_ADJ, levels=levels(otrain$EDU_ADJ))
-ovalid$CREDIT_DEC    = factor(ovalid$CREDIT_DEC, levels=levels(otrain$CREDIT_DEC))
-
 
 reset_ovalid = ovalid
 
 
-
-#---------------FEATURE SELECTION
+#---------------------------------------------------------------------------------------------------
+#                   FEATURE SELECTION
+#---------------------------------------------------------------------------------------------------
 #check redundant columns
 correlationMatrix = cor(otrain[,c("LIMIT_BAL","AGE","PAY_PC1","PAY_PC2","PAY_PC3","AMT_PC1","AMT_PC2","AMT_PC3","AMT_PC4","AMT_PC5","AMT_PC6","AMT_PC7")])
 findCorrelation(correlationMatrix, cutoff=0.5)
 #no highly correlated items
 
+
+rfe_control = rfeControl(functions=rfFuncs, method="cv", number=10)
+
+#feature selection on train
 excludeID = which(colnames(otrain)=="ID")
 excludeTarget = which(colnames(otrain)=="default")
 excludeAge = which(colnames(otrain)=="AGE")
 excludeLimit = which(colnames(otrain)=="LIMIT_BAL")
 excludeEdu = which(colnames(otrain)=="EDUCATION")
+excludeAgeDec = which(colnames(otrain)=="AGEDEC")
+
+#rfe_results = rfe(otrain[,c(-excludeID, -excludeTarget, -excludeAgeDec)], otrain$default, sizes=c(1:17), rfeControl=rfe_control)
 
 
-rfe_control = rfeControl(functions=rfFuncs, method="cv", number=10)
-rfe_results = rfe(otrain[,c(-excludeID, -excludeTarget, -excludeAge, -excludeEdu)], otrain$default, sizes=c(1:17), rfeControl=rfe_control)
+#feature selection on small sample
+set.seed(12345) #42
+featureSample = createDataPartition(y = otrain$default, p = 0.3, list = F)
+ofeature = otrain[featureSample, ]
+
+excludeID = which(colnames(ofeature)=="ID")
+excludeTarget = which(colnames(ofeature)=="default")
+excludeAge = which(colnames(ofeature)=="AGE")
+excludeLimit = which(colnames(ofeature)=="LIMIT_BAL")
+excludeEdu = which(colnames(ofeature)=="EDUCATION")
+excludeAgeDec = which(colnames(ofeature)=="AGEDEC")
+#excludeAmtPC2 = which(colnames(ofeature)=="AMT_PC2")
+
+rfe_results = rfe(featureTest[,c(-excludeID, -excludeTarget, -excludeAgeDec)], ofeature$default, sizes=c(1:17), rfeControl=rfe_control)
+
 rfe_results
-plot(rfe_results)
+predictors(rfe_results)
+plot(rfe_results, type=c("g", "o"))
 rfe_results$variables
 
+varImp = varImp(rfe_results, scale=FALSE)
+plot(varImp)
 
-#---------------------------------------------
-# Create train and test data
-#---------------------------------------------
+ggplot(varImp, aes(x=varImp$Overall, y=reorder(row.names(varImp),varImp$Overall))) + geom_point(size=1) + xlab("Importance")
+# Overall
+# PAY_PC1   43.18399
+# AGE       31.37156
+# LIMIT_BAL 29.25190
+# AMT_PC2   18.72533
+# PAY_PC2   18.58307
+# PAY_PC3   16.32971
+# EDUCATION 16.27168
 
+
+
+#---------------------------------------------------------------------------------------------------
+#                               Create train and test data
+#---------------------------------------------------------------------------------------------------
 
 set.seed(12345) #42
 
@@ -314,9 +393,9 @@ nrow(training[training$default=="N",]) #12263 - number of non defaults in traini
 #equal number of defaults
 
 
-#---------------------------
-# Create models
-#---------------------------
+#************************************************************************************************
+#                               LOGISTICAL MODEL (GLM)
+#************************************************************************************************
 
 #Precision:Positive Pred Value
 #Recall:Sensitivtiy
@@ -325,13 +404,14 @@ nrow(training[training$default=="N",]) #12263 - number of non defaults in traini
 #glmodel = "default ~. -ID" #all variables (AIC: 15805, F1: 0.660561, sensitivity/recall: 0.54640, precision/pos pred value: 0.83502)
 #glmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL +AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID"
 #glmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID" 
+#glmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + EDUCATION + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID"  #AIC 15834
 #glmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID" #AIC 15733 -
 #glmodel = "default ~ PAY_PC1 + AGE + LIMIT_BAL + EDUCATION + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID" #AIC 15768 - after feature selection - top 7 variables
 glmodel = "default ~ PAY_PC1 + AGEDEC:LIMIT_BAL + EDU_ADJ + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID" #AIC 15525 - Best model
-#glmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + EDUCATION + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID"  #AIC 15834
 
 #glmodel = "default ~ PAY_PC1 + AGEDEC:CREDIT_DEC + EDU_ADJ + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID" #AIC 15402
 #glmodel = "default ~ PAY_PC1 + AGEDEC + CREDIT_DEC + EDU_ADJ + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID" #AIC 15419
+
 
 
 def.glm = glm(formula = glmodel,
@@ -341,9 +421,9 @@ summary(def.glm)
 #AIC: 15803
 
 
-###########################
+#---------------------------------------
 # Create probabilities and predictions
-###########################
+#---------------------------------------
 
 # add the probabilities to the testing data
 testing$probability = predict(def.glm, newdata = testing, type = "response")
@@ -354,9 +434,9 @@ testing$prediction = "N"
 testing[testing$probability >= 0.5, "prediction"] = "Y"
 
 
-###########################
+#---------------------------------------
 # Evaluation using confusion matrix
-###########################
+#---------------------------------------
 
 #set Target=1 as the focus for confusion matrix
 cm = confusionMatrix(data = as.factor(testing$prediction), testing$default, positive="Y")
@@ -389,6 +469,11 @@ cm
 # 
 # 'Positive' Class : Y    
 
+
+#----------------------------------------------
+#   Plot ROC curve
+#----------------------------------------------
+
 install.packages("pROC")
 library(pROC)
 
@@ -396,9 +481,9 @@ test_auc = auc(testing$default, testing$probability)
 test_auc #Area under the curve: 0.803
 plot(roc(testing$default, testing$probability))
 
-# #------------------
-# # write predictions to file
-# #------------------
+#----------------------------------------------
+#   Predict on validation file
+#----------------------------------------------
 
 ovalid = reset_ovalid
 
@@ -426,16 +511,16 @@ write.csv(output, "AT3_DAM_IT_Logistic_0603.csv", row.names = FALSE)
 
 
 
-#-------------------------------------------
+#---------------------------------------------------------------------------------------------------
 # Lasso & Ridge check
-#--------------------------------------------
+#---------------------------------------------------------------------------------------------------
 
 install.packages("glmnet")
 library(glmnet)
 
-###########################
+#************************************************************************************************
 # Lasso Regression (F1 - 0.3316629, sensitivity/recall: 0.21744, precision/pos pred value: 0.69866)
-###########################
+#************************************************************************************************
 
 #reset variables
 training = resetTraining
@@ -501,7 +586,9 @@ lasso_confusion
 
 lasso_confusion$byClass["F1"] #0.3316629
 
-#------------get ROC score
+#----------------------------------------------
+#   Plot ROC curve
+#----------------------------------------------
 
 install.packages("pROC")
 library(pROC)
@@ -510,9 +597,11 @@ test_auc = auc(testing$default, as.matrix(prediction_lasso.prob)[,1])
 test_auc #Area under the curve: 0.7374
 plot(roc(testing$default,  as.matrix(prediction_lasso.prob)[,1]))
 
-###########################
+
+
+#************************************************************************************************
 # Ridge Regression (F1: 0.3143782, sensitivity/recall: 0.20311, precision/pos pred value: 0.69530)
-###########################
+#************************************************************************************************
 
 #reset variables
 training = resetTraining
@@ -575,7 +664,9 @@ ridge_confusion
 
 ridge_confusion$byClass["F1"] #0.3207459 
 
-#------------get ROC score
+#----------------------------------------------
+#   Plot ROC curve
+#----------------------------------------------
 
 install.packages("pROC")
 library(pROC)
@@ -585,9 +676,9 @@ test_auc #Area under the curve: 0.7374
 plot(roc(testing$default,  as.matrix(prediction_ridge.prob)[,1]))
 
 
-#-------------------------------------------
-# Tree classification
-#--------------------------------------------
+#************************************************************************************************
+# Decision Tree (F1: 0.5262017, sensitivity/recall: 0.4349, precision/pos pred value: 0.6661)
+#************************************************************************************************
 
 install.packages("rpart", dependencies = TRUE)
 install.packages("rpart.plot", dependencies = TRUE)
@@ -614,9 +705,6 @@ testing = resetTesting
 z = model.matrix(~ ., testing[, c(-excludeID, -excludeTarget)])
 a = testing$default
 
-###########################
-# Decision Tree (F1: 0.5262017, sensitivity/recall: 0.4349, precision/pos pred value: 0.6661)
-###########################
 
 #build model
 rpart_model = rpart(training$default ~.-ID,data = training, method="class") #use method ="anova" for regression problems
@@ -632,7 +720,7 @@ rpart_predict.prob = predict(rpart_model,testing,type="prob")
 rpart_confusion = confusionMatrix(data = as.factor(rpart_predict), testing$default, positive="Y")
 rpart_confusion
 
-rpart_confusion$byClass["F1"] #0.5262017
+rpart_confusion$byClass["F1"] #0.5761092
 
 # Reference
 # Prediction    N    Y
@@ -658,19 +746,48 @@ rpart_confusion$byClass["F1"] #0.5262017
 # 
 # 'Positive' Class : Y          
 
-#------------get ROC score
+#----------------------------------------------
+#   Plot ROC curve
+#----------------------------------------------
 
 install.packages("pROC")
 library(pROC)
 
 test_auc = auc(testing$default, as.matrix(rpart_predict.prob)[,1])
-test_auc #Area under the curve: 0.7762
+test_auc #Area under the curve: 0.7762 (Kaggle score: 0.70634)
 plot(roc(testing$default,  as.matrix(rpart_predict.prob)[,1]))
 
 
-###########################
+#----------------------------------------------
+#   Predict on validation file
+#----------------------------------------------
+
+ovalid = reset_ovalid
+
+str(ovalid)
+
+
+validation_out = NULL 
+validation_out$ID = ovalid$ID
+validation_out$predict = predict(rpart_model,ovalid,type="class")
+
+validation_out = as.data.frame(validation_out)
+validation_out$default = 0
+validation_out$default[validation_out$predict=="Y"] = 1
+validation_out$default = as.factor(validation_out$default)
+
+#rownames(validation_out) = c()
+
+output = validation_out[,c("ID","default")]
+
+write.csv(output, "AT3_DAM_IT_credit_decisiontree.csv", row.names = FALSE)
+
+
+
+
+#************************************************************************************************
 # Random Forests (F1: 0.5614414, sensitivity/recall: 0.4654, precision/pos pred value: 0.7075)
-###########################
+#************************************************************************************************
 
 install.packages("randomForest")
 library(randomForest)
@@ -701,7 +818,10 @@ xmodel = "default ~. -ID" #(Kaggle: 0.69462)
 #xmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2  + AMT_PC3 + AMT_PC4 + AMT_PC5 + AMT_PC6 + PAY_PC2 + PAY_PC3 - ID"
 #xmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2 + PAY_PC2 - ID"
 
-#-----------Tune RF------------
+
+#---------------------------------------
+# Tune Random Forest
+#---------------------------------------
 #filterFeatures(trainTask, method = "rf.importance", abs = 6)
 install.packages("mlr")
 library(mlr)
@@ -747,6 +867,10 @@ tc = trainControl(method="cv", number=5, classProbs=TRUE)
 #takes 10mins to run
 rf.fit = train(form=as.formula(xmodel), data=training, method="rf", trControl=tc)
 rf.fit
+
+varImp = varImp(rf.fit, scale=FALSE)
+plot(varImp)
+
 # Random Forest 
 # 
 # 16172 samples
@@ -800,7 +924,9 @@ testing$default   = factor(testing$default, levels=levels(training$default))
 
 #rf_model = randomForest(as.formula(xmodel), data = training, mtry=12, importance=TRUE, keep.forest=TRUE, ntree=1000)
 #ntree=135; mtry=9; nodesize=38 : acc.test.mean=0.8224334
-rf_model = randomForest(as.formula(xmodel), data = training, mtry=9, importance=TRUE, keep.forest=TRUE, ntree=135, nodesize=38)
+
+
+rf_model = randomForest(as.formula(xmodel), data = training, mtry=13, importance=TRUE, keep.forest=TRUE, ntree=135, nodesize=38)
 rf_model
 
 
@@ -875,29 +1001,13 @@ test_auc = auc(testing$default, test_prob_rf[,2])
 test_auc #Area under the curve: 0.8112
 plot(roc(testing$default, test_prob_rf[,2]))
 
-#------------------
-# write predictions to file
-#------------------
+#----------------------------------------------
+#   Predict on validation file
+#----------------------------------------------
 
-ovalid = read.csv("AT3_credit_test_STUDENT.csv")
-
-# #------------------
-# # check data
-# #------------------
+ovalid = reset_ovalid
 
 str(ovalid)
-
-ovalid$EDUCATION = as.factor(ovalid$EDUCATION)
-ovalid$MARRIAGE = as.factor(ovalid$MARRIAGE)
-ovalid$SEX = as.factor(ovalid$SEX)
-
-nrow(ovalid)     #6899
-
-ovalid$SEX = as.character(ovalid$SEX)
-ovalid$SEX[ovalid$SEX=="cat"] = "Other"
-ovalid$SEX[ovalid$SEX=="dog"] = "Other"
-ovalid$SEX[ovalid$SEX=="dolphin"] = "Other"
-ovalid$SEX = as.factor(ovalid$SEX)
 
 
 validation_out = NULL 
@@ -917,9 +1027,9 @@ write.csv(output, "AT3_DAM_IT_credit_sample_UPLOAD_RF.csv", row.names = FALSE)
 
 
 
-#----------------------------------------------
+#************************************************************************************************
 #   Boosting (F1: 0.5853835, sensitivity/recall: 0.4833, precision/pos pred value: 0.7422)
-#----------------------------------------------
+#************************************************************************************************
 
 install.packages("gbm", dependencies=TRUE)
 library(gbm)
@@ -950,11 +1060,9 @@ testing[testing$default == "Y", "default_binary"] = 1
 
 set.seed(42)
 
-bmodel = "default_binary~. -ID - default" #Kaggle: 0.67126
-#bmodel = "default_binary ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2 + AMT_PC3 + AMT_PC4 + AMT_PC5 + AMT_PC6 + PAY_PC2 + PAY_PC3 - ID - default"
-
-
-#tuning
+#---------------------------------------------------------
+# Tuning
+#---------------------------------------------------------
 fitControl = trainControl(## 10-fold CV
   method = "repeatedcv", #repeatedcv
   number = 10,
@@ -969,14 +1077,45 @@ gbm_tune = train(as.formula(bmodel), data=training,
                  verbose = FALSE)
 gbm_tune
 
-# defining some parameters
-# gbm_depth = 3 #maximum nodes per tree
-# gbm_n.min = 10 #minimum number of observations in the trees terminal, important effect on overfitting
-# gbm_shrinkage=0.1 #learning rate
-# cores_num = 2 #number of cores
-# gbm_cv.folds=5 #number of cross-validation folds to perform
-# num_trees = 150 #20000 is best
+varImp = varImp(gbm_tune, scale=FALSE)
+plot(varImp)
+# Overall
+# PAY_PC1    993.535
+# AGE        410.596
+# PAY_PC2    230.307
+# EDUCATION4 218.694
+# LIMIT_BAL  218.410
+# AMT_PC1    118.413
+# PAY_PC3    113.303
+# AMT_PC2     59.248
+# MARRIAGE1   30.589
+# AMT_PC5     21.588
+# EDUCATION3  21.245
+# AMT_PC6     20.126
+# AMT_PC7     16.459
+# AMT_PC4     16.380
+# AMT_PC3      8.997
+# EDUCATION6   5.864
+# MARRIAGE2    1.875
+# SEX2         0.000
+# MARRIAGE3    0.000
+# EDUCATION5   0.000
 
+
+
+#---------------------------------------------------------
+# Run Model
+#---------------------------------------------------------
+#bmodel = "default_binary~. -ID - default -AGEDEC" #roc: 0.8095, F1:0.5339842, Kaggle: 0.67126
+#bmodel = "default_binary ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2 + AMT_PC3 + AMT_PC4 + AMT_PC5 + AMT_PC6 + PAY_PC2 + PAY_PC3 - ID - default"
+bmodel = "default_binary~ PAY_PC1 +AGE +LIMIT_BAL +EDUCATION +AMT_PC2 +PAY_PC2 +PAY_PC3 -ID -default" #roc: 0.8091 F1: 0.5426761
+bmodel = "default_binary~ PAY_PC1 +AGE +LIMIT_BAL +EDUCATION +AMT_PC2 +PAY_PC2 +PAY_PC3 +AMT_PC1 +MARRIAGE +AMT_PC5 +AMT_PC6 +AMT_PC7 +AMT_PC3 -ID -default" #roc: 0.8084  F1:0.5339266 
+bmodel = "default_binary~ PAY_PC1 +AGE +LIMIT_BAL +EDUCATION +AMT_PC2" #roc: 0.8087  F1: 0.5324334
+bmodel = "default_binary~ PAY_PC1 +AGE +LIMIT_BAL +EDUCATION" #roc: 0.8065 F1:0.5434215
+bmodel = "default_binary~ PAY_PC1 +AGE +LIMIT_BAL" #roc: 0.7874: F1: 0.4948296
+
+
+# defining some parameters based on tuning
 gbm_depth = 3 #maximum nodes per tree
 gbm_n.min = 10 #minimum number of observations in the trees terminal, important effect on overfitting
 gbm_shrinkage=0.1 #learning rate
@@ -1017,7 +1156,7 @@ testing$prediction = as.factor(testing$prediction)
 #predictions for test set
 boost_confusion = confusionMatrix(testing$prediction, testing$default, positive="Y")
 
-boost_confusion$byClass["F1"] #0.5381466
+boost_confusion$byClass["F1"] #0.5398956
 boost_confusion
 
 # Reference
@@ -1044,10 +1183,16 @@ boost_confusion
 # 
 # 'Positive' Class : Y     
 
-#plot roc curve
+#---------------------------------------
+#   Plot ROC curve
+#---------------------------------------
+install.packages("pROC")
+library(pROC)
+
 test_auc = auc(testing$default, testing$probability)
-test_auc #Area under the curve: 0.8034
+test_auc #Area under the curve: 0.8077
 plot(roc(testing$default, testing$probability))
+
 
 #show partial dependencies
 plot(gbm_fit, i="PAY_PC1")
@@ -1060,72 +1205,8 @@ plot(gbm_fit, i="AMT_PC1")
 #   Predict on validation file
 #----------------------------------------------
 
-ovalid = read.csv("AT3_credit_test_STUDENT.csv")
-
-# #------------------
-# # check data
-# #------------------
-
-str(ovalid)
-
-ovalid$EDUCATION = as.factor(ovalid$EDUCATION)
-ovalid$MARRIAGE = as.factor(ovalid$MARRIAGE)
-ovalid$SEX = as.factor(ovalid$SEX)
-
-nrow(ovalid)     #6899
-ggplot(data.frame(ovalid$LIMIT_BAL), aes(x="Credit Limit", y=ovalid$LIMIT_BAL)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + ylab("$")
-hist(ovalid$LIMIT_BAL, xlab="Credit Limit", main="Histogram of Credit Limit")
-ggplot(data.frame(ovalid$AGE), aes(x="Age", y=ovalid$AGE)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggplot(data.frame(ovalid$AGE), aes(x=ovalid$AGE)) + geom_bar() + xlab("Age")
-#some outliers in age - over 120 years of age
-
-ggplot(data.frame(ovalid$SEX), aes(x=ovalid$SEX)) + geom_bar() + xlab("Sex")
-#one record of cat, dog, dolphin - need to change to NA
-
-ovalid$SEX = as.character(ovalid$SEX)
-ovalid$SEX[ovalid$SEX=="cat"] = "Other"
-ovalid$SEX[ovalid$SEX=="dog"] = "Other"
-ovalid$SEX[ovalid$SEX=="dolphin"] = "Other"
-#write.csv(ovalid, "test.csv")
-ovalid$SEX = as.factor(ovalid$SEX)
-#ovalid = droplevels(ovalid)
-
-ggplot(data.frame(ovalid$EDUCATION), aes(x=ovalid$EDUCATION)) + geom_bar() + xlab("Education")
-ggplot(data.frame(ovalid$MARRIAGE), aes(x=ovalid$MARRIAGE)) + geom_bar() + xlab("Marriage")
-ggplot(data.frame(ovalid$PAY_PC1), aes(x="Pay PC1", y=ovalid$PAY_PC1)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggplot(data.frame(ovalid$PAY_PC2), aes(x="Pay PC2", y=ovalid$PAY_PC2)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggplot(data.frame(ovalid$PAY_PC3), aes(x="Pay PC3", y=ovalid$PAY_PC3)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggplot(data.frame(ovalid$AMT_PC1), aes(x="Amt PC1", y=ovalid$AMT_PC1)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggplot(data.frame(ovalid$AMT_PC2), aes(x="Amt PC2", y=ovalid$AMT_PC2)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggplot(data.frame(ovalid$AMT_PC3), aes(x="Amt PC3", y=ovalid$AMT_PC3)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggplot(data.frame(ovalid$AMT_PC4), aes(x="Amt PC4", y=ovalid$AMT_PC4)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggplot(data.frame(ovalid$AMT_PC5), aes(x="Amt PC5", y=ovalid$AMT_PC5)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggplot(data.frame(ovalid$AMT_PC6), aes(x="Amt PC6", y=ovalid$AMT_PC6)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggplot(data.frame(ovalid$AMT_PC7), aes(x="Amt PC7", y=ovalid$AMT_PC7)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
-ggplot(data.frame(ovalid$default), aes(x=ovalid$default)) + geom_bar() + xlab("Default")
-
-hist(ovalid$PAY_PC1, xlab="PAY_PC1", main="Histogram of PAY_PC1")
-hist(ovalid$PAY_PC2, xlab="PAY_PC2", main="Histogram of PAY_PC2")
-hist(ovalid$PAY_PC3, xlab="PAY_PC3", main="Histogram of PAY_PC3")
-
-hist(ovalid$AMT_PC1, xlab="AMT_PC1", main="Histogram of AMT_PC1")
-hist(ovalid$AMT_PC2, xlab="AMT_PC2", main="Histogram of AMT_PC2")
-hist(ovalid$AMT_PC3, xlab="AMT_PC3", main="Histogram of AMT_PC3")
-hist(ovalid$AMT_PC4, xlab="AMT_PC4", main="Histogram of AMT_PC4")
-hist(ovalid$AMT_PC5, xlab="AMT_PC5", main="Histogram of AMT_PC5")
-hist(ovalid$AMT_PC6, xlab="AMT_PC6", main="Histogram of AMT_PC6")
-hist(ovalid$AMT_PC7, xlab="AMT_PC7", main="Histogram of AMT_PC7")
-
-
-prop.table(table(ovalid$SEX))
-prop.table(table(ovalid$EDUCATION))
-prop.table(table(ovalid$MARRIAGE))
-
-
-# #------------------
-# # write predictions to file
-# #------------------
-
+#reset validation file in case touched by other models
+ovalid = reset_ovalid
 
 validation_out = NULL 
 validation_out$ID = ovalid$ID
@@ -1141,12 +1222,12 @@ rownames(validation_out) = c()
 
 output = validation_out[,c("ID","default")]
 
-write.csv(output, "AT3_DAM_IT_Boost_0602.csv", row.names = FALSE)
+write.csv(output, "AT3_DAM_IT_Boost_0605d.csv", row.names = FALSE)
 
 
-###########################
-# Naive Bayes classification
-###########################
+#************************************************************************************************
+#                         Naive Bayes classification
+#************************************************************************************************
 
 install.packages("e1071")
 library(e1071)
@@ -1227,14 +1308,10 @@ test_auc #Area under the curve: 0.7259
 plot(roc(testing$default, nb.prob[,2]))
 
 
-# #------------------
-# # write predictions to file
-# #------------------
-ovalid = read.csv("AT3_credit_test_STUDENT.csv")
-
-# #------------------
-# # check data
-# #------------------
+#----------------------------------------------
+#   Predict on validation file
+#----------------------------------------------
+ovalid = reset_ovalid
 
 str(ovalid)
 nrow(ovalid)     #6899
@@ -1244,7 +1321,6 @@ nrow(ovalid)     #6899
 # testing$prediction = predict(nbfit, testing)
 # testing$probability = predict(nbfit, testing, type="raw")
 # nb.prob = as.matrix(testing$probability)
-
 
 
 validation_out = NULL 
