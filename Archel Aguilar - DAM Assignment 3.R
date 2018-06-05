@@ -1106,13 +1106,12 @@ plot(varImp)
 #---------------------------------------------------------
 # Run Model
 #---------------------------------------------------------
-#bmodel = "default_binary~. -ID - default -AGEDEC" #roc: 0.8095, F1:0.5339842, Kaggle: 0.67126
-#bmodel = "default_binary ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2 + AMT_PC3 + AMT_PC4 + AMT_PC5 + AMT_PC6 + PAY_PC2 + PAY_PC3 - ID - default"
-bmodel = "default_binary~ PAY_PC1 +AGE +LIMIT_BAL +EDUCATION +AMT_PC2 +PAY_PC2 +PAY_PC3 -ID -default" #roc: 0.8091 F1: 0.5426761
-bmodel = "default_binary~ PAY_PC1 +AGE +LIMIT_BAL +EDUCATION +AMT_PC2 +PAY_PC2 +PAY_PC3 +AMT_PC1 +MARRIAGE +AMT_PC5 +AMT_PC6 +AMT_PC7 +AMT_PC3 -ID -default" #roc: 0.8084  F1:0.5339266 
-bmodel = "default_binary~ PAY_PC1 +AGE +LIMIT_BAL +EDUCATION +AMT_PC2" #roc: 0.8087  F1: 0.5324334
-bmodel = "default_binary~ PAY_PC1 +AGE +LIMIT_BAL +EDUCATION" #roc: 0.8065 F1:0.5434215
-bmodel = "default_binary~ PAY_PC1 +AGE +LIMIT_BAL" #roc: 0.7874: F1: 0.4948296
+bmodel = "default_binary~. -ID - default -AGEDEC" #g. roc: 0.8132, F1:0.5467412, Kaggle: 0.67126
+#bmodel = "default_binary~ PAY_PC1 +AGE +LIMIT_BAL +EDUCATION +AMT_PC2 +PAY_PC2 +PAY_PC3 -ID -default" #e. roc: 0.8091 F1: 0.5426761
+#bmodel = "default_binary~ PAY_PC1 +AGE +LIMIT_BAL +EDUCATION +AMT_PC2 +PAY_PC2 +PAY_PC3 +AMT_PC1 +MARRIAGE +AMT_PC5 +AMT_PC6 +AMT_PC7 +AMT_PC3 -ID -default" #f. roc: 0.8084  F1:0.5339266 
+#bmodel = "default_binary~ PAY_PC1 +AGE +LIMIT_BAL +EDUCATION +AMT_PC2" #roc: 0.8087  F1: 0.5324334
+#bmodel = "default_binary~ PAY_PC1 +AGE +LIMIT_BAL +EDUCATION" #roc: 0.8065 F1:0.5434215
+#bmodel = "default_binary~ PAY_PC1 +AGE +LIMIT_BAL" #roc: 0.7874: F1: 0.4948296
 
 
 # defining some parameters based on tuning
@@ -1222,7 +1221,7 @@ rownames(validation_out) = c()
 
 output = validation_out[,c("ID","default")]
 
-write.csv(output, "AT3_DAM_IT_Boost_0605d.csv", row.names = FALSE)
+write.csv(output, "AT3_DAM_IT_Boost_0605g.csv", row.names = FALSE)
 
 
 #************************************************************************************************
@@ -1250,27 +1249,48 @@ a = testing$default
 set.seed(42)
 
 
-nmodel = "default ~. -ID" 
-#nmodel = "default ~ PAY_PC1 + AGE + LIMIT_BAL + EDUCATION + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID"
+#-----------------------------------------------------------------
+#       TUNE NAIVE BAYES
+#-----------------------------------------------------------------
+nb_grid = data.frame(fL=c(0,0.5,1.0), usekernel = TRUE, adjust=c(0,0.5,1.0))
+ 
+#tuned nb
+nb_tuned_model = train(x,y,'nb', tuneGrid=nb_grid, trControl=trainControl(method='cv',number=10))
 
-nbfit=naiveBayes(as.formula(nmodel), data=training)
+nb_tuned_model
 
-testing$prediction = predict(nbfit, testing)
-testing$probability = predict(nbfit, testing, type="raw")
-nb.prob = as.matrix(testing$probability)
+varImp = varImp(nb_tuned_model, scale=FALSE)
+plot(varImp)
 
-
-#--------------------------------
-# nb_grid = data.frame(fL=c(0,0.5,1.0), usekernel = TRUE, adjust=c(0,0.5,1.0))
-# 
-# #tuned nb
-# nb_tuned_model = train(x,y,'nb', tuneGrid=nb_grid, trControl=trainControl(method='cv',number=10))
-# 
 # testing$prediction = predict(nb_tuned_model, testing)
 # testing$probability = predict(nb_tuned_model, testing, type="prob")
 # 
 # nb.prob = as.matrix(testing$probability)
 #--------------------------------
+
+
+nmodel = "default ~. -ID" #roc: 0.7295, F1: 0.4519738
+
+nmodel = "default~ PAY_PC1 +AGE +LIMIT_BAL +EDUCATION +AMT_PC2 +PAY_PC2 +PAY_PC3 -ID" #b. roc: 0.7383, F1: 0.5188624, Kaggle: 0.67549
+nIncList = c("default", "ID", "PAY_PC1", "AGE", "LIMIT_BAL", "EDUCATION", "AMT_PC2", "PAY_PC2", "PAY_PC3")
+
+nmodel = "default~ PAY_PC1 +LIMIT_BAL +EDUCATION +AMT_PC2 +PAY_PC2 +PAY_PC3 +AGEDEC +EDUCATION +AMT_PC1 +AMT_PC6 +AMT_PC4 -ID" #c. roc:0.738 F1: 0.5094383
+nIncList = c("default", "ID", "PAY_PC1", "LIMIT_BAL", "EDUCATION", "AMT_PC2", "PAY_PC2", "PAY_PC3", "AGEDEC", "AMT_PC1", "AMT_PC6", "AMT_PC4")
+
+nmodel = "default~ PAY_PC1 +AGE +LIMIT_BAL +EDUCATION +AMT_PC2 +PAY_PC2 -ID" #d. roc: 0.7364, F1: 0.5083732
+nIncList = c("default", "ID", "PAY_PC1", "AGE", "LIMIT_BAL", "EDUCATION", "AMT_PC2", "PAY_PC2")
+
+nmodel = "default~ PAY_PC1 +AGE +LIMIT_BAL +EDUCATION +AMT_PC2 -ID" #e. roc: 0.7231, F1: 0.4851896
+nIncList = c("default", "ID", "PAY_PC1", "AGE", "LIMIT_BAL", "EDUCATION", "AMT_PC2")
+
+
+
+nbfit=naiveBayes(as.formula(nmodel), data=training[,nIncList])
+
+testing$prediction = predict(nbfit, testing[,nIncList])
+testing$probability = predict(nbfit, testing[,nIncList], type="raw")
+nb.prob = as.matrix(testing$probability)
+
 
 #predictions for test set
 nb_confusion = confusionMatrix(testing$prediction, testing$default, positive="Y")
@@ -1340,7 +1360,7 @@ rownames(validation_out) = c()
 
 output = validation_out[,c("ID","default")]
 
-write.csv(output, "AT3_DAM_IT_Naive_0603.csv", row.names = FALSE)
+write.csv(output, "AT3_DAM_IT_Naive_0605b.csv", row.names = FALSE)
 
 
 
