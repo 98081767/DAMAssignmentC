@@ -1269,7 +1269,7 @@ plot(varImp)
 #--------------------------------
 
 
-nmodel = "default ~. -ID" #roc: 0.7295, F1: 0.4519738
+nmodel = "default ~. -ID" #a. roc: 0.7295, F1: 0.4519738
 
 nmodel = "default~ PAY_PC1 +AGE +LIMIT_BAL +EDUCATION +AMT_PC2 +PAY_PC2 +PAY_PC3 -ID" #b. roc: 0.7383, F1: 0.5188624, Kaggle: 0.67549
 nIncList = c("default", "ID", "PAY_PC1", "AGE", "LIMIT_BAL", "EDUCATION", "AMT_PC2", "PAY_PC2", "PAY_PC3")
@@ -1360,8 +1360,218 @@ rownames(validation_out) = c()
 
 output = validation_out[,c("ID","default")]
 
-write.csv(output, "AT3_DAM_IT_Naive_0605b.csv", row.names = FALSE)
+write.csv(output, "AT3_DAM_IT_Naive_0605e.csv", row.names = FALSE)
 
+
+
+#************************************************************************************************
+#                         Bagging
+#************************************************************************************************
+
+install.packages("ipred")
+library(ipred)
+install.packages("adabag")
+library(adabag)
+install.packages("plyr", dependencies=TRUE)
+library(plyr)
+
+
+#reset variables
+training = resetTraining
+#remove ID and Target from model
+
+excludeID = which(colnames(training)=="ID")
+excludeTarget = which(colnames(training)=="default")
+
+x = training[, c(-excludeID, -excludeTarget)]
+y = training$default
+
+testing = resetTesting
+
+
+set.seed(42)
+
+#-----------------------------------------------------------------
+#       TUNE BAGGING
+#-----------------------------------------------------------------
+
+bg_control = trainControl(method = "cv", number = 10)
+
+date()
+bagfit = train(x, y, method = "treebag", trControl = bg_control, nbagg=500, keepX=TRUE) #b. roc:0.8098, F1: 0.5763074
+date()
+
+varImp = varImp(bg_tuned_model, scale=FALSE)
+plot(varImp)
+
+# Overall
+# LIMIT_BAL     1802.29
+# AMT_PC1       1735.44
+# AMT_PC2       1726.43
+# AGE           1654.95
+# PAY_PC1       1520.54
+# AMT_PC3       1348.10
+# AMT_PC4       1334.75
+# PAY_PC2       1315.24
+# AMT_PC5       1270.22
+# AMT_PC6       1250.82
+# AMT_PC7       1189.69
+# PAY_PC3       1100.45
+# EDUCATION4     464.31
+# EDUCATION3     316.16
+# MARRIAGE1      308.70
+# SEX2           301.89
+# MARRIAGE2      281.42
+# AGEDEC(30,40]  172.83
+# AGEDEC(50,60]  133.96
+# AGEDEC(40,50]   73.83
+
+
+#try predict on tuned model
+testing$prediction = predict(bagfit, testing)
+testing$probability = predict(bagfit, testing, type="prob")
+bag.prob = as.matrix(testing$probability)
+
+
+#-----------------predict on testing
+
+#predictions for test set
+bag_confusion = confusionMatrix(testing$prediction, testing$default, positive="Y")
+
+bag_confusion$byClass["F1"]
+bag_confusion
+
+#---------------GET ROC Curve
+install.packages("pROC")
+library(pROC)
+
+test_auc = auc(testing$default, bag.prob[,2])
+test_auc 
+plot(roc(testing$default, bag.prob[,2]))
+
+
+#----------------------------------------------
+#   Predict on validation file
+#----------------------------------------------
+ovalid = reset_ovalid
+
+str(ovalid)
+nrow(ovalid)     #6899
+
+
+validation_out = NULL 
+validation_out$ID = ovalid$ID
+validation_prob = predict(bagfit, ovalid, type="prob")
+validation_prob = as.matrix(validation_prob)
+
+validation_out$prob = validation_prob[,2]
+validation_out$default = 0
+
+validation_out = as.data.frame(validation_out)
+
+validation_out[validation_out$prob >= 0.5, "default"] = 1
+validation_out$default = as.factor(validation_out$default)
+
+rownames(validation_out) = c()
+
+output = validation_out[,c("ID","default")]
+
+write.csv(output, "AT3_DAM_IT_Bag_0606b.csv", row.names = FALSE)
+
+
+
+#-----------------------------------------------------------------
+#Try using parameters instead
+#-----------------------------------------------------------------
+
+#bagmodel = "default ~. -ID" #a. roc:0.8096, F1: 0.5772242
+
+bagmodel = "default~ PAY_PC1 +AGE +LIMIT_BAL +EDUCATION +AMT_PC2 +PAY_PC2 +PAY_PC3 -ID" #c. roc: 0.8098, F1: 0.5763074 
+
+bg_control = rpart.control(minsplit=10, cp=0.1, xval=10, maxdepth =3)
+
+excludeID = which(colnames(training)=="ID")
+excludeTarget = which(colnames(training)=="default")
+
+bagfit = bagging(as.formula(bagmodel), data=training, coob=TRUE, nbagg=200, control=bg_control)
+
+testing$prediction = predict(bagfit, testing)
+testing$probability = predict(bagfit, testing, type="prob")
+bag.prob = as.matrix(testing$probability)
+
+#-----------------predict on testing
+
+
+#predictions for test set
+bag_confusion = confusionMatrix(testing$prediction, testing$default, positive="Y")
+
+bag_confusion$byClass["F1"] #0.5772242
+bag_confusion
+
+# Reference
+# Prediction    N    Y
+# N 4900  855
+# Y  333  811
+# 
+# Accuracy : 0.8278          
+# 95% CI : (0.8187, 0.8366)
+# No Information Rate : 0.7585          
+# P-Value [Acc > NIR] : < 2.2e-16       
+# 
+# Kappa : 0.4738          
+# Mcnemar's Test P-Value : < 2.2e-16       
+# 
+# Sensitivity : 0.4868          
+# Specificity : 0.9364          
+# Pos Pred Value : 0.7089          
+# Neg Pred Value : 0.8514          
+# Prevalence : 0.2415          
+# Detection Rate : 0.1176          
+# Detection Prevalence : 0.1658          
+# Balanced Accuracy : 0.7116          
+# 
+# 'Positive' Class : Y  
+#---------------GET ROC Curve
+install.packages("pROC")
+library(pROC)
+
+test_auc = auc(testing$default, bag.prob[,2])
+test_auc #Area under the curve: 0.8096
+plot(roc(testing$default, bag.prob[,2]))
+
+#----------------------------------------------
+#   Predict on validation file
+#----------------------------------------------
+ovalid = reset_ovalid
+
+str(ovalid)
+nrow(ovalid)     #6899
+
+# nbfit=naiveBayes(as.formula(nmodel), data=training)
+# 
+# testing$prediction = predict(nbfit, testing)
+# testing$probability = predict(nbfit, testing, type="raw")
+# nb.prob = as.matrix(testing$probability)
+
+
+validation_out = NULL 
+validation_out$ID = ovalid$ID
+validation_prob = predict(bagfit, ovalid, type="prob")
+validation_prob = as.matrix(validation_prob$prob)
+
+validation_out$prob = validation_prob[,2]
+validation_out$default = 0
+
+validation_out = as.data.frame(validation_out)
+
+validation_out[validation_out$prob >= 0.5, "default"] = 1
+validation_out$default = as.factor(validation_out$default)
+
+rownames(validation_out) = c()
+
+output = validation_out[,c("ID","default")]
+
+write.csv(output, "AT3_DAM_IT_Bag_0606c.csv", row.names = FALSE)
 
 
 #---------------------- END ---------------------------
