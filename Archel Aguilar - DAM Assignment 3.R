@@ -1280,7 +1280,7 @@ nIncList = c("default", "ID", "PAY_PC1", "LIMIT_BAL", "EDUCATION", "AMT_PC2", "P
 nmodel = "default~ PAY_PC1 +AGE +LIMIT_BAL +EDUCATION +AMT_PC2 +PAY_PC2 -ID" #d. roc: 0.7364, F1: 0.5083732
 nIncList = c("default", "ID", "PAY_PC1", "AGE", "LIMIT_BAL", "EDUCATION", "AMT_PC2", "PAY_PC2")
 
-nmodel = "default~ PAY_PC1 +AGE +LIMIT_BAL +EDUCATION +AMT_PC2 -ID" #e. roc: 0.7231, F1: 0.4851896
+nmodel = "default~ PAY_PC1 +AGE +LIMIT_BAL +EDUCATION +AMT_PC2 -ID" #e. roc: 0.7231, F1: 0.4851896, Kaggle: 0.64165
 nIncList = c("default", "ID", "PAY_PC1", "AGE", "LIMIT_BAL", "EDUCATION", "AMT_PC2")
 
 
