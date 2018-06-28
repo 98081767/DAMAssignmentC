@@ -46,8 +46,8 @@ library(ISLR)
 install.packages('caret', dependencies = TRUE)
 library(caret)
 
-setwd("C:/Users/Jack Galati/Documents/Uni/2018 Semester 1/DAM/Assignment 3")
-#setwd("C:/Personal/UTS/R-References/R-references-Git/DAMAssignment2B")
+#setwd("C:/Users/Jack Galati/Documents/Uni/2018 Semester 1/DAM/Assignment 3")
+setwd("C:/Users/arche/Documents/UTS/R-References/R-references-Git/DAMAssignmentC")
 
 getwd()
 
@@ -74,6 +74,22 @@ library(reshape2)
 summary(otrain)
 
 str(otrain)
+
+
+#find correlation of key variables impacting default 
+install.packages("psych")
+library(psych)
+
+
+otrain_num = subset(otrain, select=-c(ID))
+otrain_num$SEX = as.integer(otrain_num$SEX)
+otrain_num$EDUCATION = as.integer(otrain_num$EDUCATION)
+otrain_num$MARRIAGE = as.integer(otrain_num$MARRIAGE)
+otrain_num$default = as.integer(otrain_num$default)
+
+cor.ci(otrain_num[,c("default", "LIMIT_BAL", "EDUCATION", "PAY_PC1", "PAY_PC2", "AMT_PC2", "PAY_PC3")], method="spearman")
+
+
 
 contrasts(otrain$SEX)
 contrasts(otrain$EDUCATION)
@@ -411,6 +427,8 @@ glmodel = "default ~ PAY_PC1 + AGEDEC:LIMIT_BAL + EDU_ADJ + AMT_PC2 + PAY_PC2 + 
 
 #glmodel = "default ~ PAY_PC1 + AGEDEC:CREDIT_DEC + EDU_ADJ + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID" #AIC 15402
 #glmodel = "default ~ PAY_PC1 + AGEDEC + CREDIT_DEC + EDU_ADJ + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID" #AIC 15419
+glmodel = "default ~ LIMIT_BAL + EDUCATION + PAY_PC1 + PAY_PC2 + AMT_PC2 + PAY_PC3 - ID" #AIC 15803
+
 
 
 
@@ -504,7 +522,7 @@ rownames(validation_out) = c()
 
 output = validation_out[,c("ID","default")]
 
-write.csv(output, "AT3_DAM_IT_Logistic_0603.csv", row.names = FALSE)
+write.csv(output, "AT3_DAM_IT_Logistic_0628.csv", row.names = FALSE)
 
 
 
@@ -705,9 +723,11 @@ testing = resetTesting
 z = model.matrix(~ ., testing[, c(-excludeID, -excludeTarget)])
 a = testing$default
 
+#dtfeature = "training$default ~.-ID" #F1: #0.5761092, #Area under the curve: 0.7762 (Kaggle score: 0.70634)
+dtfeature = "training$default ~ LIMIT_BAL + EDUCATION + PAY_PC1 + PAY_PC2 + AMT_PC2 + PAY_PC3 -ID" #F1: 0.4701465, AUC: 0.3182
 
 #build model
-rpart_model = rpart(training$default ~.-ID,data = training, method="class") #use method ="anova" for regression problems
+rpart_model = rpart(dtfeature, data = training, method="class") #use method ="anova" for regression problems
 
 #plot tree
 prp(rpart_model, digits = -3)
@@ -817,6 +837,8 @@ xmodel = "default ~. -ID" #(Kaggle: 0.69462)
 #xmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2 + PAY_PC2 + PAY_PC3 - ID" #(Kaggle: 0.68825)
 #xmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2  + AMT_PC3 + AMT_PC4 + AMT_PC5 + AMT_PC6 + PAY_PC2 + PAY_PC3 - ID"
 #xmodel = "default ~ PAY_PC1 + AGE:LIMIT_BAL + AGE:EDUCATION + AMT_PC1 + AMT_PC2 + PAY_PC2 - ID"
+xmodel = "default ~ LIMIT_BAL + EDUCATION + PAY_PC1 + PAY_PC2 + AMT_PC2 + PAY_PC3 -ID" #F1: 0.4458204, ROC: 0.7516
+
 
 
 #---------------------------------------
